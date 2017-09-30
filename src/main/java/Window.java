@@ -37,15 +37,7 @@ public class Window extends JFrame
                 
             }
         }, 0,250);
-        // Timer t = new Timer(1000, updateClock);
-        // t.start();
-    
-        // ActionListener updateClock = new ActionListener(){
-        //     public void actionPerformed(ActionEvent e)
-        //     {
-        //         clockTime.setText(new Date().toString);
-        //     }
-        // }
+
 
         // Top Panel        
         JPanel searchPanel = new JPanel(new FlowLayout());     
