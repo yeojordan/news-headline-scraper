@@ -1,7 +1,7 @@
 # news-headline-scraper
 COMP3003 Assignment: Scraper for News Headlines
 
-###Summary
+### Summary
 
 The following repository contains the source code for the News Headline Scraper
 
