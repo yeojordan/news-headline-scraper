@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.net.HttpURLConnection;
 
 /** 
  * NewsPlugin abstract class
@@ -45,7 +46,13 @@ public abstract class NewsPlugin implements Callable
             // URL url = new URL("http://www.bbc.com/news");
             URL url = new URL( retrieveURL() );
 
-            try(ReadableByteChannel chan = Channels.newChannel(url.openStream()))
+            // Set user agent
+            HttpURLConnection con=(HttpURLConnection)(url.openConnection());
+            System.setProperty("http.agent","");
+            con.setRequestProperty("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
+            // URL url = new URL("http://www.bbc.com/news");
+
+            try(ReadableByteChannel chan = Channels.newChannel(con.getInputStream()))
             {
                 ByteBuffer buf = ByteBuffer.allocate(65536);
                 byte[] array = buf.array();

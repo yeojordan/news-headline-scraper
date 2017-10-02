@@ -2,8 +2,8 @@ import java.util.*;
 
 public class ArstechnicaPlugin extends NewsPlugin
 {
-    private String match = "<h1 class=\"heading\">";
-    private String endMatch = "</h1>";
+    private String match = "<h2>";
+    private String endMatch = "</h2>";
     private StringBuilder rawHTML;
 
     @Override
@@ -15,7 +15,7 @@ public class ArstechnicaPlugin extends NewsPlugin
 
     public List<String> parse()
     {
-        List<String> h1Tags = new LinkedList<>();
+        List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
         int endIdx = 0; 
 
@@ -33,12 +33,12 @@ public class ArstechnicaPlugin extends NewsPlugin
             {            
                 String retrieved = this.rawHTML.substring(0, endIdx+5);
                 this.rawHTML.delete(0, endIdx+5); //stop sequence.length()
-                h1Tags.add(retrieved);
+                headlineTags.add(retrieved);
                 System.out.println("RETRIEVED:\n\n" + retrieved + "\nEND RETRIEVED");
             }
         }
         
-        return h1Tags;
+        return headlineTags;
     }
 
     public void update()
