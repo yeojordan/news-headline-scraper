@@ -1,16 +1,18 @@
+import javax.swing.SwingUtilities;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class NewsController
 {
     private Window ui = null;
     private List<NewsPlugin> plugins; 
+    private LinkedBlockingQueue<String> queue;
 
     public NewsController(String[] pluginNames)
     {
         PluginLoader loader = new PluginLoader();
         try
         {   
-
             this.plugins = new LinkedList<>();
             for(String name : pluginNames)
             {
@@ -38,11 +40,25 @@ public class NewsController
      */
     public void update()
     {
+        ExecutorService ex = Executors.newFixedThreadPool(4);
+        Future<List<String>> future = null;
         System.out.println("Controller updating");
-        for(NewsPlugin plugin : this.plugins)
+        try
         {
-            plugin.update();
+            for(NewsPlugin plugin : this.plugins)
+            {
+                future = ex.submit(plugin);
+            }
+
+            updateUI(future.get());
         }
+        catch(InterruptedException e){}
+        catch(ExecutionException e){}
+    }
+
+    public void updateUI(List<String> list)
+    {
+        this.ui.updateList(list);
     }
 
     /**  

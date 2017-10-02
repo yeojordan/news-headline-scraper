@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Date;
+import java.util.List.*;
 // For logging
 import java.util.logging.Logger;
 
@@ -103,4 +104,14 @@ public class Window extends JFrame
 
     }
 
+
+    public void updateList(java.util.List<String> list)
+    {
+        SwingUtilities.invokeLater(()->{
+            for(String str : list )
+            {
+                this.searchResults.addElement(str);
+            }
+        });
+    }
 }
