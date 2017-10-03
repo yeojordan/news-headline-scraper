@@ -9,12 +9,16 @@ public class NewsController
     private List<NewsPlugin> plugins; 
     private LinkedBlockingQueue<Headline> queue;
     private Map<Integer, String> websiteMap;
+    private ExecutorService ex;
+    private Future<?> poller;
+    private boolean isRunning;
 
     public NewsController(String[] pluginNames)
-    {
+    {   
         PluginLoader loader = new PluginLoader();
         this.websiteMap = new HashMap<>();
         this.queue = new LinkedBlockingQueue<>();
+        this.isRunning = true;
         try
         {   
             this.plugins = new LinkedList<>();
@@ -27,6 +31,21 @@ public class NewsController
             //Set up backend map
             getWebsites().stream()
                          .forEach((x)-> this.websiteMap.put(x.hashCode(), x)); 
+
+
+            this.ex = Executors.newScheduledThreadPool(this.websiteMap.size()+1);
+            Runnable poll = new Runnable(){
+                @Override
+                public void run()
+                {
+                    while(isRunning)
+                    {
+
+                    }
+                }
+            };
+
+
         }
         catch(ClassNotFoundException e)
         {
@@ -47,6 +66,7 @@ public class NewsController
      */
     public void update(Set<Integer> uiHeadlines)
     {
+        this.poller = this.ex.submit( () -> {
         int threadPoolSize = 4;
         ExecutorService ex = Executors.newFixedThreadPool(threadPoolSize);
         List<Future<List<Headline>>> future = new LinkedList<>();
@@ -93,6 +113,8 @@ public class NewsController
         }
         catch(InterruptedException e){}
         // catch(ExecutionException e){}
+        });
+        System.out.println("SUBMITTED UPDATE");
     }
 
     public void updateUI(Set<Integer> uiKeys)
@@ -148,8 +170,8 @@ public class NewsController
         newKeys.stream()
                 .filter( x -> { return headlines.containsKey(x) == true; } )
                 .forEach( x -> {
-                newHeads.add(headlines.get(x));
-                });
+                        newHeads.add(headlines.get(x));
+                    });
         
         return newHeads;
     }

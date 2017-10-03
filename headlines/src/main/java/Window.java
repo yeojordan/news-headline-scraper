@@ -63,12 +63,6 @@ public class Window extends JFrame
         
         clock.add(new JLabel("Current Time"));
 
-
-        // searchPanel.add(searchPathBox);
-        // searchPanel.add(new JLabel("Search text:"));
-        // searchPanel.add(cancelButton);
-        // searchPanel.add(updateButton);
-
         searchResults = new DefaultListModel<>();        
         JScrollPane resultsList = new JScrollPane(new JList<String>(searchResults));
         
