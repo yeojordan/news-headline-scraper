@@ -1,16 +1,20 @@
 // import javax.swing.SwingUtilities;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class NewsController
 {
     private Window ui = null;
     private List<NewsPlugin> plugins; 
-    private LinkedBlockingQueue<String> queue;
+    private LinkedBlockingQueue<Headline> queue;
+    private Map<Integer, String> websiteMap;
 
     public NewsController(String[] pluginNames)
     {
         PluginLoader loader = new PluginLoader();
+        this.websiteMap = new HashMap<>();
+        this.queue = new LinkedBlockingQueue<>();
         try
         {   
             this.plugins = new LinkedList<>();
@@ -20,6 +24,9 @@ public class NewsController
                 plugin.setFrequency(30);
                 this.plugins.add(plugin);
             }
+            //Set up backend map
+            getWebsites().stream()
+                         .forEach((x)-> this.websiteMap.put(x.hashCode(), x)); 
         }
         catch(ClassNotFoundException e)
         {
@@ -38,35 +45,113 @@ public class NewsController
     /** 
      * For the UI update button to notify that an update has been requested from the user
      */
-    public void update()
+    public void update(Set<Integer> uiHeadlines)
     {
-        ExecutorService ex = Executors.newFixedThreadPool(4);
-        Future<List<Headline>> future = null;
+        int threadPoolSize = 4;
+        ExecutorService ex = Executors.newFixedThreadPool(threadPoolSize);
+        List<Future<List<Headline>>> future = new LinkedList<>();
         System.out.println("Controller updating");
         try
-        {
+        {   
             for(NewsPlugin plugin : this.plugins)
             {
-                future = ex.submit(plugin);
+                System.out.println("STARTING PLUGIN");
+                future.add(ex.submit(plugin));
             }
+            
+            System.out.println("INSERTING IN BLOCKING QUEUE");
+            future.stream()
+                    .forEach((x) -> {
+                        try
+                        {
+                            x.get().stream()
+                            .forEach((y) -> {
+                                try
+                                {
+                                    this.queue.put(y);
+                                }
+                                catch(Exception e){}
+                            });
+                        }
+                        catch(Exception e){}
+                    });
 
- 
-            List<Headline> lines = future.get(); // For testing 
-            lines.stream()
-                 .forEach(System.out::println);
+            this.queue.put( new Headline("POISON_PILL", -1, -1) );
+            // lines.
+            // List<Headline> lines = future.get();
+            // filter(uiHeadlines);
+
+            System.out.println("UPDATING UI CALL");
+            updateUI(uiHeadlines);
+             // For testing 
+            // lines.stream()
+            //      .forEach(System.out::println);
                      
                  //(x)->System.out.println(x.toString()));
 
-
-            // updateUI(future.get());
+            
         }
         catch(InterruptedException e){}
-        catch(ExecutionException e){}
+        // catch(ExecutionException e){}
     }
 
-    public void updateUI(List<String> list)
+    public void updateUI(Set<Integer> uiKeys)
     {
-        this.ui.updateList(list);
+        List<Integer> remove;
+        List<Headline> add;
+        Map<Integer, Headline> newEntries = new HashMap<>();
+        try
+        {
+            Headline curr = this.queue.take();
+            
+            System.out.println("STARTING RETRIEVE");
+            while( !"POISON_PILL".equals(curr.getHeadline()) )
+            {   
+                // Create a map of the new entries u
+                newEntries.put((this.websiteMap.get(curr.getHash()) + curr.getHeadline()).hashCode() , curr);
+                curr = this.queue.take();
+            }
+            System.out.println("ENDING RETRIEVE");
+            Set<Integer> newKeys = newEntries.keySet();
+            Set<Integer> newKeys2 = newEntries.keySet();
+            Set<Integer> oldKeys = new HashSet<>();
+            uiKeys.stream()
+                  .forEach((x) -> oldKeys.add(x));
+
+            remove = filterOld(newKeys, uiKeys);
+            add = filterNew(newKeys2, oldKeys, newEntries);
+
+            // System.out.println("FINAL CALL TO UI UPDATE");
+            // for(Headline head : add)
+            // {
+            //     System.out.println(head.toString());
+            // }
+            this.ui.update(remove, add);
+        }
+        catch(InterruptedException e)
+        {
+
+        }
+        
+    }
+
+    public List<Integer> filterOld(Set<Integer> newKeys, Set<Integer> oldKeys)
+    {
+        oldKeys.removeAll(newKeys);
+        return new LinkedList<Integer>(oldKeys);
+    }
+
+    public List<Headline> filterNew(Set<Integer> newKeys, Set<Integer> oldKeys, Map<Integer, Headline> headlines)
+    {
+        newKeys.removeAll(oldKeys);
+        List<Headline> newHeads = new LinkedList<>();
+        newKeys.stream()
+                .filter( x -> { return headlines.containsKey(x) == true; } )
+                .forEach( x -> {
+                newHeads.add(headlines.get(x));
+                });
+        
+        return newHeads;
     }
 
     /**  
@@ -75,5 +160,12 @@ public class NewsController
     public void cancel()
     {
         System.out.println("Controller cancelling");
+    }
+
+    public List<String> getWebsites()
+    {
+        return this.plugins.stream()
+                           .map(NewsPlugin::retrieveURL)
+                           .collect(Collectors.toCollection(LinkedList::new));
     }
 }

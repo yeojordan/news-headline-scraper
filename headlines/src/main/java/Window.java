@@ -5,12 +5,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Date;
 import java.util.List.*;
+import java.util.Map;
+import java.util.HashMap;
 // For logging
 import java.util.logging.Logger;
 
 public class Window extends JFrame
 {
     private DefaultListModel<String> searchResults;
+    private Map<Integer, String> websiteMap;
+    private Map<Integer, Headline> headlines;
 
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
 
@@ -40,6 +44,12 @@ public class Window extends JFrame
             }
         }, 0,250);
 
+        this.websiteMap = new HashMap<>();
+        this.headlines = new HashMap<>();
+
+        //Set up backend map
+        controller.getWebsites().stream()
+                                .forEach((x)-> this.websiteMap.put(x.hashCode(), x));        
 
         // Top Panel        
         JPanel searchPanel = new JPanel(new FlowLayout());     
@@ -97,21 +107,54 @@ public class Window extends JFrame
                 //searchResults.clear();
                 //Force and update
                 System.out.println("Update button pressed");
-                controller.update();
+                controller.update(headlines.keySet());
                 // LOGGER.log(info, "Cancel pressed");
             }
         });
 
     }
 
-
-    public void updateList(java.util.List<String> list)
+    public void update(java.util.List<Integer> articleIDs, java.util.List<Headline> headlines)
     {
-        SwingUtilities.invokeLater(()->{
-            for(String str : list )
-            {
-                this.searchResults.addElement(str);
-            }
+        System.out.println("UPDATING UI LIST");
+        articleIDs.stream()
+                  .forEach((x) -> this.headlines.remove(x));
+
+        // Add new entries
+        headlines.stream()
+                 .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
+                                                     + x.getHeadline()).hashCode(), x));
+        // Set article source
+        headlines.stream()
+        .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
+                                            + x.getHeadline()).hashCode()).
+                                            setWebsite(this.websiteMap.get(x.getHash())));
+
+
+        SwingUtilities.invokeLater(() -> {
+            this.searchResults.removeAllElements();
+            DefaultListModel<String> newList = new DefaultListModel<>();
+            this.headlines.values().stream()
+                                .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
+                                .forEach((x) -> {  this.searchResults.addElement(x.toString());
+                                    System.out.println(x.toString());
+                                });
+
+                                System.out.println("PRE " + newList.capacity());
+        
+            
         });
+
+        // System.out.println("AFTER " + this.searchResults.capacity());
     }
+
+    // public void add(java.util.List<String> list)
+    // {
+    //     SwingUtilities.invokeLater(()->{
+    //         for(String str : list )
+    //         {
+    //             this.searchResults.addElement(str);
+    //         }
+    //     });
+    // }
 }

@@ -1,4 +1,5 @@
 import java.util.*;
+import java.text.*;
 
 public class ArstechnicaPlugin extends NewsPlugin
 {
@@ -14,7 +15,13 @@ public class ArstechnicaPlugin extends NewsPlugin
         try
         {
             this.rawHTML = super.downloadHTML();
-            int time = (int)(new Date().getTime()/1000);
+
+            long time = new Date().getTime();
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+
+            // System.out.println("CURRENT DATE TIME" + new Date().toString());
+            // System.out.println("CURRENT TIME" + format.format(new Date(tempTime)));
+
 
             List<String> hTags = parse();
             
@@ -35,7 +42,7 @@ public class ArstechnicaPlugin extends NewsPlugin
 
     }
 
-    public Headline createHeadline(String headlineTag, int time)
+    public Headline createHeadline(String headlineTag, long time)
     {
         Headline headline;
         // String matcher;
@@ -53,11 +60,11 @@ public class ArstechnicaPlugin extends NewsPlugin
         
         String source = head.substring(0, endURLIdx);
         
-        System.out.println("SOURCE: " + source);
+        // System.out.println("SOURCE: " + source);
         head.delete(0, endURLIdx+urlEndMatch.length());
         int headEndIdx = head.indexOf("</a>");
         String headlineText = head.substring(0, headEndIdx);
-        System.out.println("HEADLINE: " + headlineText);
+        // System.out.println("HEADLINE: " + headlineText);
 
         headline = new Headline(headlineText, time, this.url.hashCode());
 
