@@ -1,4 +1,4 @@
-import javax.swing.SwingUtilities;
+// import javax.swing.SwingUtilities;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -41,7 +41,7 @@ public class NewsController
     public void update()
     {
         ExecutorService ex = Executors.newFixedThreadPool(4);
-        Future<List<String>> future = null;
+        Future<List<Headline>> future = null;
         System.out.println("Controller updating");
         try
         {
@@ -50,7 +50,15 @@ public class NewsController
                 future = ex.submit(plugin);
             }
 
-            updateUI(future.get());
+ 
+            List<Headline> lines = future.get(); // For testing 
+            lines.stream()
+                 .forEach(System.out::println);
+                     
+                 //(x)->System.out.println(x.toString()));
+
+
+            // updateUI(future.get());
         }
         catch(InterruptedException e){}
         catch(ExecutionException e){}

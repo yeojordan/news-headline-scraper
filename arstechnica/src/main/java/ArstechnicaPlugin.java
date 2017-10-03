@@ -5,13 +5,65 @@ public class ArstechnicaPlugin extends NewsPlugin
     private String match = "<h2>";
     private String endMatch = "</h2>";
     private StringBuilder rawHTML;
-
+    // private HeadlineFactory fact;
+    private String url = "https://arstechnica.com";
     @Override
-    public List<String> call()
+    public List<Headline> call() throws IllegalArgumentException
     {
-        this.rawHTML = super.downloadHTML();
-        return parse();
+        List<Headline> headlines = new LinkedList<>();
+        try
+        {
+            this.rawHTML = super.downloadHTML();
+            int time = (int)(new Date().getTime()/1000);
+
+            List<String> hTags = parse();
+            
+            int hash = this.retrieveURL().hashCode();
+            for(String tag : hTags)
+            {
+                headlines.add( createHeadline(tag, time) );//this.fact.create( hash, tag ) );
+            }
+        }
+        catch(Exception e)
+        {
+            throw new IllegalArgumentException("Unable to create arstechnica headline", e);
+        }
+
+        return headlines;
+        
+        
+
     }
+
+    public Headline createHeadline(String headlineTag, int time)
+    {
+        Headline headline;
+        // String matcher;
+        String urlMatch = "<a href=\"";
+        String urlEndMatch ="\">";
+        // matcher = this.pluginKeys.get(hash);
+
+        StringBuilder head = new StringBuilder(headlineTag);
+        int urlIdx = head.indexOf(urlMatch);
+        
+
+
+        head.delete(0, urlIdx + urlMatch.length());
+        int endURLIdx = head.indexOf(urlEndMatch);
+        
+        String source = head.substring(0, endURLIdx);
+        
+        System.out.println("SOURCE: " + source);
+        head.delete(0, endURLIdx+urlEndMatch.length());
+        int headEndIdx = head.indexOf("</a>");
+        String headlineText = head.substring(0, headEndIdx);
+        System.out.println("HEADLINE: " + headlineText);
+
+        headline = new Headline(headlineText, time, this.url.hashCode());
+
+        return headline;
+    }
+
 
     public List<String> parse()
     {
@@ -25,16 +77,14 @@ public class ArstechnicaPlugin extends NewsPlugin
             if (startIdx != -1)
             {    
                 this.rawHTML.delete(0, startIdx); // Trim start and discard
-                // System.out.println("TRIM to discard:\n\n" + temp.toString());    
             }
 
             endIdx = this.rawHTML.indexOf(this.endMatch);
             if(endIdx != -1)
             {            
-                String retrieved = this.rawHTML.substring(0, endIdx+5);
+                String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
                 this.rawHTML.delete(0, endIdx+5); //stop sequence.length()
                 headlineTags.add(retrieved);
-                System.out.println("RETRIEVED:\n\n" + retrieved + "\nEND RETRIEVED");
             }
         }
         
@@ -51,11 +101,20 @@ public class ArstechnicaPlugin extends NewsPlugin
         super.setFrequency(updateFrequency);
     }
 
+    // public void setFactory(HeadlineFactory fact)
+    // {
+    //     this.fact = fact;
+    // }
+
     public String retrieveURL()
     {
         return "https://arstechnica.com";
     }
     
-
+    public String getKey()
+    {
+        return this.match;
+    }
+    
     
 }

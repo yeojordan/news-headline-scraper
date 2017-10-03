@@ -20,6 +20,7 @@ public abstract class NewsPlugin implements Callable
         //this.updateFreq = updateFreq;
     }
 
+    public abstract String getKey();
     
     public abstract void update();
 
