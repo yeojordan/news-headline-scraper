@@ -7,14 +7,16 @@ import java.util.Date;
 import java.util.List.*;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 // For logging
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Window extends JFrame
 {
     private DefaultListModel<String> searchResults;
-    private Map<Integer, String> websiteMap;
-    private Map<Integer, Headline> headlines;
+    private Map<Integer, String> websiteMap = new HashMap<>();
+    private final Map<Integer, Headline> headlines = new HashMap<>();
 
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
 
@@ -27,6 +29,14 @@ public class Window extends JFrame
 
         JPanel clock = new JPanel(new FlowLayout());
         JLabel clockTime = new JLabel();
+        // Timer timer2 = new Timer();
+        // timer2.scheduleAtFixedRate( new TimerTask(){
+        //     @Override 
+        //     public void run(){
+        //         System.out.println("            " +headlines.keySet().size());
+        //     }
+        // }, 0, 1000);
+
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask(){
@@ -44,8 +54,8 @@ public class Window extends JFrame
             }
         }, 0,250);
 
-        this.websiteMap = new HashMap<>();
-        this.headlines = new HashMap<>();
+        
+        // this.headlines = new HashMap<>();
 
         //Set up backend map
         controller.getWebsites().stream()
@@ -87,7 +97,7 @@ public class Window extends JFrame
             @Override public void actionPerformed(ActionEvent e)
             {
                 //searchResults.clear();
-                System.out.println("Cancel button pressed");
+                System.out.println("Cancel button pressed " +headlines.keySet().size());
                 controller.cancel();
                 // LOGGER.log(info, "Cancel pressed");
             }
@@ -100,46 +110,61 @@ public class Window extends JFrame
             {
                 //searchResults.clear();
                 //Force and update
-                System.out.println("Update button pressed");
-                controller.update(headlines.keySet());
+                System.out.println("Update button pressed :" +headlines.keySet().size());
+                Set<Integer> copy = headlines.keySet().stream()
+                                                      .collect(Collectors.toSet());
+                controller.update( copy );
+                System.out.println("SIZE AFTER PASS " + headlines.keySet().size());
+                // progress();
                 // LOGGER.log(info, "Cancel pressed");
             }
         });
 
     }
+    public void progress()
+    {
+        Container pane = getContentPane();
+        JProgressBar bar = new JProgressBar();
+        bar.setIndeterminate(true);
+        pane.add(bar, BorderLayout.SOUTH);
+    }
 
     public void update(java.util.List<Integer> articleIDs, java.util.List<Headline> headlines)
     {
-        System.out.println("UPDATING UI LIST");
+        System.out.println("UPDATING UI LIST\nto delete: " + articleIDs.size() + "\nto add " + headlines.size());
+
+System.out.println("BEFORE remove: " + this.headlines.size());
         articleIDs.stream()
                   .forEach((x) -> this.headlines.remove(x));
-
+System.out.println("AFTER remove: " + this.headlines.size());
         // Add new entries
         headlines.stream()
                  .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
                                                      + x.getHeadline()).hashCode(), x));
+System.out.println("AFTER add: " + this.headlines.size());                                                     
         // Set article source
         headlines.stream()
         .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
                                             + x.getHeadline()).hashCode()).
                                             setWebsite(this.websiteMap.get(x.getHash())));
 
-
+System.out.println("AFTER set: " + this.headlines.size());
         SwingUtilities.invokeLater(() -> {
-            this.searchResults.removeAllElements();
-            DefaultListModel<String> newList = new DefaultListModel<>();
-            this.headlines.values().stream()
-                                .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
-                                .forEach((x) -> {  this.searchResults.addElement(x.toString());
-                                    System.out.println(x.toString());
-                                });
-
-                                System.out.println("PRE " + newList.capacity());
-        
+            // if( articleIDs.size() > 0)
+                this.searchResults.removeAllElements(); // O(n)
             
+            // if( headlines.size() > 0)
+                this.headlines.values().stream()
+                                    .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
+                                    // .filter((x) ->  this.searchResults.contains(x.toString()) == false ) // Only insert if it isn't in the list 
+                                    .forEach((x) -> {  this.searchResults.addElement(x.toString());
+                                        // System.out.println(x.toString());
+                                    });
+            
+
         });
 
-        // System.out.println("AFTER " + this.searchResults.capacity());
+        System.out.println("AFTER update" + this.headlines.size());
     }
 
     // public void add(java.util.List<String> list)

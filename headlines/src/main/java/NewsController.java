@@ -160,6 +160,7 @@ public class NewsController
     public List<Integer> filterOld(Set<Integer> newKeys, Set<Integer> oldKeys)
     {
         oldKeys.removeAll(newKeys);
+        System.out.println("OLD COUNT: " + oldKeys.size());
         return new LinkedList<Integer>(oldKeys);
     }
 
@@ -172,7 +173,7 @@ public class NewsController
                 .forEach( x -> {
                         newHeads.add(headlines.get(x));
                     });
-        
+        System.out.println("NEW COUNT: " + newHeads.size());
         return newHeads;
     }
 
