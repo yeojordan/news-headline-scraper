@@ -6,14 +6,17 @@ public class ArstechnicaPlugin extends NewsPlugin
     private String match = "<h2>";
     private String endMatch = "</h2>";
     private StringBuilder rawHTML;
+    private boolean interrupted;
     // private HeadlineFactory fact;
     private String url = "https://arstechnica.com";
     @Override
-    public List<Headline> call() throws IllegalArgumentException
+    public void run() throws IllegalArgumentException
     {
-        List<Headline> headlines = new LinkedList<>();
+        // List<Headline> headlines = new LinkedList<>();
         try
         {
+            super.running(this.url.hashCode());
+            this.interrupted = true;
             this.rawHTML = super.downloadHTML();
 
             long time = new Date().getTime();
@@ -22,22 +25,23 @@ public class ArstechnicaPlugin extends NewsPlugin
             // System.out.println("CURRENT DATE TIME" + new Date().toString());
             // System.out.println("CURRENT TIME" + format.format(new Date(tempTime)));
 
-
             List<String> hTags = parse();
-            
-            int hash = this.retrieveURL().hashCode();
+
+            // int hash = this.retrieveURL().hashCode();
             for(String tag : hTags)
             {
-                headlines.add( createHeadline(tag, time) );//this.fact.create( hash, tag ) );
+                // Invoke super method to send each headline created to the controller
+                super.sendHeadline( createHeadline(tag, time) );
             }
+            this.interrupted = false;
+            super.lastHeadline();
+            
+
         }
         catch(Exception e)
         {
             throw new IllegalArgumentException("Unable to create arstechnica headline", e);
         }
-
-        return headlines;
-        
         
 
     }
@@ -66,11 +70,15 @@ public class ArstechnicaPlugin extends NewsPlugin
         String headlineText = head.substring(0, headEndIdx);
         // System.out.println("HEADLINE: " + headlineText);
 
-        headline = new Headline(headlineText, time, this.url.hashCode());
+        headline = new Headline(headlineText, time, this.url.hashCode(), this.url);
 
         return headline;
     }
 
+    public boolean interrupted() 
+    {
+        return this.interrupted;
+    }
 
     public List<String> parse()
     {

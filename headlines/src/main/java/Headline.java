@@ -11,11 +11,12 @@ public class Headline
     // private Date date;
     // private String url;
 
-    public Headline(String headline, long time, int sourceHashCode)
+    public Headline(String headline, long time, int sourceHashCode, String source)
     {
         this.headline = headline;
         this.time = time;
         this.sourceHashCode = sourceHashCode;
+        this.source = source;
         // this.source = source;
         // this.headline = headline;
         // this.date = date;
@@ -26,6 +27,12 @@ public class Headline
     {
         this.source = source;
     }
+
+    public String getSource()
+    {
+        return this.source;
+    }
+    
     public int getHash()
     {
         return this.sourceHashCode;

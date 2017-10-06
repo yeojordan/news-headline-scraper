@@ -16,8 +16,8 @@ public class Window extends JFrame
 {
     private DefaultListModel<String> searchResults;
     private Map<Integer, String> websiteMap = new HashMap<>();
-    private final Map<Integer, Headline> headlines = new HashMap<>();
-
+    private Map<Integer, Headline> headlines = new HashMap<>();
+    private java.util.List<String> activeDownloads = new java.util.LinkedList<>();
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
 
     public Window(final NewsController controller)
@@ -113,7 +113,7 @@ public class Window extends JFrame
                 System.out.println("Update button pressed :" +headlines.keySet().size());
                 Set<Integer> copy = headlines.keySet().stream()
                                                       .collect(Collectors.toSet());
-                controller.update( copy );
+                controller.update();//( copy );
                 System.out.println("SIZE AFTER PASS " + headlines.keySet().size());
                 // progress();
                 // LOGGER.log(info, "Cancel pressed");
@@ -133,27 +133,27 @@ public class Window extends JFrame
     {
         System.out.println("UPDATING UI LIST\nto delete: " + articleIDs.size() + "\nto add " + headlines.size());
 
-System.out.println("BEFORE remove: " + this.headlines.size());
+
         articleIDs.stream()
                   .forEach((x) -> this.headlines.remove(x));
-System.out.println("AFTER remove: " + this.headlines.size());
+
         // Add new entries
         headlines.stream()
                  .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
                                                      + x.getHeadline()).hashCode(), x));
-System.out.println("AFTER add: " + this.headlines.size());                                                     
+
         // Set article source
         headlines.stream()
-        .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
+                 .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
                                             + x.getHeadline()).hashCode()).
                                             setWebsite(this.websiteMap.get(x.getHash())));
 
-System.out.println("AFTER set: " + this.headlines.size());
+
         SwingUtilities.invokeLater(() -> {
-            // if( articleIDs.size() > 0)
+            if( articleIDs.size() > 0)
                 this.searchResults.removeAllElements(); // O(n)
             
-            // if( headlines.size() > 0)
+            if( headlines.size() > 0)
                 this.headlines.values().stream()
                                     .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
                                     // .filter((x) ->  this.searchResults.contains(x.toString()) == false ) // Only insert if it isn't in the list 
@@ -165,6 +165,29 @@ System.out.println("AFTER set: " + this.headlines.size());
         });
 
         System.out.println("AFTER update" + this.headlines.size());
+    }
+
+    public void runningTasks(int pluginCode)
+    {
+    
+        if(this.activeDownloads.contains(this.websiteMap.get(pluginCode)))
+        {
+            this.activeDownloads.add(this.websiteMap.get(pluginCode));
+            System.out.println("Running: " + this.websiteMap.get(pluginCode) );
+        }
+
+        // SwingUtilities.invokeLater( () -> {
+
+        // });
+    }
+
+    public void finishedTasks(int pluginCode)
+    {
+        if(this.activeDownloads.contains(this.websiteMap.get(pluginCode)))
+        {
+            this.activeDownloads.remove(this.websiteMap.get(pluginCode));
+            System.out.println("Finishing: " + this.websiteMap.get(pluginCode) );
+        }
     }
 
     // public void add(java.util.List<String> list)

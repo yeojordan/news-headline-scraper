@@ -11,18 +11,21 @@ import java.net.HttpURLConnection;
  * NewsPlugin abstract class
  * Each plugin must extend NewsPlugin
  */
-public abstract class NewsPlugin implements Callable
+public abstract class NewsPlugin implements Runnable
 {
     private int updateFreq;
-    
-    public NewsPlugin()//int updateFreq)
-    {
-        //this.updateFreq = updateFreq;
-    }
+    private NewsController controller;
 
+    // Abstract methods
     public abstract String getKey();
-    
     public abstract void update();
+    public abstract String retrieveURL();
+    public abstract boolean interrupted();
+    
+    public void setController(NewsController controller)
+    {
+        this.controller = controller;
+    }
 
     public void setFrequency(int updateFrequncy)
     {
@@ -34,7 +37,23 @@ public abstract class NewsPlugin implements Callable
         return this.updateFreq;
     }
 
-    public abstract String retrieveURL();
+    // Subclass invokes when it has a headline to send
+    public void sendHeadline(Headline headline)
+    {
+        // Call controller's method to add a headline to a blocking queue
+        this.controller.submitHeadline(headline);   
+    }
+
+    protected void lastHeadline()
+    {
+        this.controller.submitHeadline( new Headline( retrieveURL() + " POISON", -1, -1, " ") );
+        this.controller.updateUI();
+    }
+
+    public void running(int pluginCode)
+    {
+        this.controller.running(pluginCode);
+    }
 
     public StringBuilder downloadHTML()
     {
