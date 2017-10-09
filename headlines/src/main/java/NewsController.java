@@ -124,8 +124,8 @@ public class NewsController
         // ExecutorService ex = Executors.newFixedThreadPool(threadPoolSize);
         // List<Future<List<Headline>>> future = new LinkedList<>();
         System.out.println("Controller updating");
-        try
-        {   
+        // try
+        // {   
             for(NewsPlugin plugin : this.plugins) // For each new plugin loaded
             {   
                 Future<?> periodicFuture = this.pluginThreads.get(plugin.retrieveURL()); // Retrieve periodic thread Future
@@ -177,11 +177,12 @@ public class NewsController
             //         });
 
             // Loop until all threads are done, then insert final poison object
-            while( this.updateThreads.values().stream()
-                                              .filter(x -> !x.isDone())
-                                              .count() > 0 );
+            // while( this.updateThreads.values().stream()
+            //                                   .filter(x -> !x.isDone())
+            //                                   .count() > 0 );
             
-            this.queue.put( new Headline("POISON_PILL", -1, -1, "") );
+                                            //   System.out.println("POISON INSERTED");
+            // this.queue.put( new Headline("POISON_PILL", -1, -1, "") );
 
 
             // System.out.println("UPDATING UI CALL");
@@ -193,8 +194,8 @@ public class NewsController
                  //(x)->System.out.println(x.toString()));
 
             
-        }
-        catch(InterruptedException e){}
+        // }
+        // catch(InterruptedException e){}
         // catch(ExecutionException e){}
         });
 
@@ -225,7 +226,7 @@ public class NewsController
                 {   
                     System.out.println("TAKE FROM QUEUE: "+curr.toString());
                     // Create a map of the new entries 
-                    newEntries.put((this.websiteMap.get(curr.getHash()) + curr.getHeadline()).hashCode() , curr);
+                    newEntries.put((curr.getSource() + curr.getHeadline()).hashCode() , curr);
                     curr = this.queue.take();
                 }
 System.out.println(curr.getHeadline());
@@ -266,10 +267,10 @@ System.out.println(fromCache);
 
                         System.out.println("SYNCED      4");                    
                         fromCache.stream()
-                             .forEach( x -> newEntries.put((this.websiteMap.get(x.getHash()) + x.getHeadline()).hashCode() , x));
+                             .forEach( x -> newEntries.put((x.getSource() + x.getHeadline()).hashCode() , x));
                     }
 System.out.println("END SYNCED");                             
-                }
+                // }
 
 System.out.println(currentUIMap);
                 // At this point there is a map of new entries (just retrieve and from cache)
@@ -282,6 +283,7 @@ System.out.println(currentUIMap);
                 // uiKeys.stream()
                 //       .forEach((x) -> oldKeys.add(x));
 remove = new LinkedList<>();
+System.out.println("currentUIMap.size" + currentUIMap.size() );
                 if(currentUIMap.size() > 0) // If there are things to remove
                 {
                     remove = filterOld(newEntries, currentUIMap, finishedPlugin);
@@ -338,8 +340,8 @@ System.out.println("STARTING retrieve headlines from UIMap");
                 .forEach( x -> sendToUI.add(currentUIMap.get(finishedPlugin).get(x)));
             }
     System.out.println("STARTING SYNC 2");
-                synchronized(this.monitor)
-                {
+                // synchronized(this.monitor)
+                // {
                     this.newsHeadlines = new HashMap<>(currentUIMap);
                 }
 

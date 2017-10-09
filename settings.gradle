@@ -1,1 +1,1 @@
-include 'headlines', 'arstechnica'
+include 'headlines', 'arstechnica', 'nytimes', 'bbc'

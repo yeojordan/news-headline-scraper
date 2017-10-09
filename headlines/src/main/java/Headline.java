@@ -53,7 +53,8 @@ public class Headline
     public String toString()
     {
         Date date = new Date(this.time);
-        SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-        return new String(this.source + "    "  + this.headline + "     " + format.format(date) );
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd hh:mma");//new SimpleDateFormat("HH:mm:ss");
+
+        return new String(this.source + ":    "  + this.headline + "     (" + format.format(date) + ")" );
     }
 }

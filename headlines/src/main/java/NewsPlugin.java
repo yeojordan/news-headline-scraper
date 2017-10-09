@@ -57,6 +57,7 @@ public abstract class NewsPlugin implements Runnable
 
     public StringBuilder downloadHTML()
     {
+        LinkedList<String> rawHTML = new LinkedList<>();
         StringBuilder parsedHTML = new StringBuilder();
         try
         {
@@ -76,13 +77,27 @@ public abstract class NewsPlugin implements Runnable
             {
                 ByteBuffer buf = ByteBuffer.allocate(65536);
                 byte[] array = buf.array();
-
+                byte[] tempArray;
                 int bytesRead = chan.read(buf);
                 while(bytesRead != -1)
                 {
                     // Get data
                     // System.out.println(new String(array, "UTF-8"));
-                    parsedHTML.append(new String(array, "UTF-8"));
+                    if( array.length > bytesRead)
+                    {
+                        tempArray = new byte[bytesRead];
+                        tempArray = Arrays.copyOf(array, bytesRead);
+                        // System.out.println(new String(tempArray, "UTF-8"));
+                        parsedHTML.append(new String(tempArray, "UTF-8"));
+                        rawHTML.add(new String(tempArray, "UTF-8"));
+                    }
+                    else
+                    {
+                        // Get data
+                        // System.out.println(new String(array, "UTF-8"));
+                        parsedHTML.append(new String(array, "UTF-8"));
+                        rawHTML.add(new String(array, "UTF-8"));
+                    }
 
                     // Clear buffer and read 
                     buf.clear();
@@ -94,7 +109,7 @@ public abstract class NewsPlugin implements Runnable
         }
         catch(Exception e)
         {}
-
+System.out.println("RAW HTML Size: " + rawHTML.size());
         return parsedHTML;
     }
 
