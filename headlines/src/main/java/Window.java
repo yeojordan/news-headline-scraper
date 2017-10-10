@@ -192,7 +192,7 @@ public class Window extends JFrame
 
     public void update(java.util.List<Headline> updateList)
     {
-        System.out.println("RECEIVING UPDATES");
+        System.out.println("RECEIVING UPDATES" + updateList.size() );
         SwingUtilities.invokeLater( () -> {
             if(updateList.size() > 0)
             {

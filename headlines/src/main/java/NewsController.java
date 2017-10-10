@@ -53,7 +53,8 @@ public class NewsController
         // Schedule each plugin and keep each Future in a map
         this.plugins.values().stream()
                              .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
-                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, 0, x.getFreq() ,TimeUnit.MINUTES)) );
+                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, 10, x.getFreq() ,TimeUnit.MINUTES)) );
+        System.out.println( this.scheduledFutures.get("http://www.bbc.com/news").toString());
     }
 
     public void setUI(Window ui)
@@ -65,23 +66,76 @@ public class NewsController
     public void updateAll()
     {
         // Find all the plugins not currently running and submit them
-        this.runningPlugins.keySet().stream() 
-                                    .filter(x -> this.runningPlugins.get(x) == false)
-                                    .forEach(x -> {
-                                        this.updateFutures.put( x, this.exService.submit(this.plugins.get(x)));
-                                        this.filter.running(x);
-                                    });
+        // this.runningPlugins.keySet().stream() 
+        //                             .filter(x -> this.runningPlugins.get(x) == false)
+        //                             .forEach(x -> {
+        //                                 this.updateFutures.put( x, this.exService.submit(this.plugins.get(x)));
+        //                                 this.filter.running(x);
+        //                             });
+System.out.println("UPDATE ALL REQUEST RECEIVED");
+
+// for(String x : this.plugins.keySet() )
+// {
+//     System.out.println("Checking scheduled: " + x);
+//     if( !this.scheduledFutures.get(x).isCancelled() || this.scheduledFutures.get(x).isDone())
+//     {
+//         System.out.println("Checking updates: " + x);
+//         // If forced update is also not running or null
+//         if( this.updateFutures.get(x) == null || this.updateFutures.get(x).isDone() )
+//         {
+//             // Submit for execution
+//             this.updateFutures.put(x, this.exService.submit(this.plugins.get(x)));
+//             System.out.println("SUBMITTING: " + x);
+//         }
+//     }
+// }
+        this.plugins.keySet().stream()
+                             .forEach( x -> {
+                                 // If scheduled update is not running
+                                 if( !this.scheduledFutures.get(x).isCancelled() || this.scheduledFutures.get(x).isDone() )
+                                 {
+                                     // If forced update is also not running or null
+                                     if( this.updateFutures.get(x) == null || this.updateFutures.get(x).isDone() )
+                                     {
+                                         // Submit for execution
+                                         this.updateFutures.put(x, this.exService.submit(this.plugins.get(x)));
+                                         System.out.println("SUBMITTING: " + x);
+                                     }
+                                 }
+                             });
     }
 
     public void cancelDownloads()
     {
         // Find all the plugins, currently running and interrupt them
-        this.runningPlugins.keySet().stream()
-                                    .filter(x -> this.runningPlugins.get(x) == true)
-                                    .forEach(x -> { 
-                                        this.scheduledFutures.get(x).cancel(true); // Cancel a scheduled plugin
-                                        this.updateFutures.get(x).cancel(true); // Cancel an update plugin
-                                    });
+        // this.runningPlugins.keySet().stream()
+        //                             .filter(x -> this.runningPlugins.get(x) == true)
+        //                             .forEach(x -> { 
+        //                                 this.scheduledFutures.get(x).cancel(true); // Cancel a scheduled plugin
+        //                                 this.updateFutures.get(x).cancel(true); // Cancel an update plugin
+        //                             });
+
+        this.plugins.keySet().stream()
+                             .forEach( x -> {
+                                 // If scheduled update is running
+                                 
+                                 if( !this.scheduledFutures.get(x).isDone() || !this.scheduledFutures.get(x).isCancelled() )
+                                 {
+                                    System.out.println("CHECKING SCHEDULED FOR CANCEL: " + x);    
+                                    this.scheduledFutures.get(x).cancel(true); 
+                                 }  
+                                 // If forced update is also running or null
+                                 
+                                 if( this.updateFutures.get(x) != null )
+                                 {
+                                     System.out.println("CHECKING UPDATE FOR CANCEL: " + x);
+                                     // Submit for execution
+                                     if(!this.updateFutures.get(x).isDone())
+                                     {
+                                         this.updateFutures.get(x).cancel(true);
+                                    }
+                                 }
+                             });
     }
 
     public void running(NewsPlugin running)
