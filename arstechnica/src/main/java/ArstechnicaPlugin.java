@@ -57,7 +57,16 @@ public class ArstechnicaPlugin extends NewsPlugin
         StringBuilder head = new StringBuilder(headlineTag);
         int urlIdx = head.indexOf(urlMatch);
         
-
+        // Replace <em> and </em> with single quotes
+        String quote = "<em>";
+        String endQuote = "</em>";
+        while( head.indexOf(quote) != -1)
+        {
+            int idx = head.indexOf(quote);
+            head.replace(idx, idx+quote.length(), "'");
+            idx = head.indexOf(endQuote);
+            head.replace(idx, idx+endQuote.length(), "'");
+        }
 
         head.delete(0, urlIdx + urlMatch.length());
         int endURLIdx = head.indexOf(urlEndMatch);

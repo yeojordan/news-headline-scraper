@@ -167,26 +167,26 @@ public class Window extends JFrame
     //     System.out.println("AFTER update" + this.headlines.size());
     // }
 
-    public void runningTasks(int pluginCode)
+    public void runningTasks(String plugin)
     {
     
-        if(this.activeDownloads.contains(this.websiteMap.get(pluginCode)))
-        {
-            this.activeDownloads.add(this.websiteMap.get(pluginCode));
-            System.out.println("Running: " + this.websiteMap.get(pluginCode) );
-        }
+        // if(!this.activeDownloads.contains(plugin))
+        // {
+            this.activeDownloads.add(plugin);
+            System.out.println("Running: " + plugin );
+        // }
 
         // SwingUtilities.invokeLater( () -> {
 
         // });
     }
 
-    public void finishedTasks(int pluginCode)
+    public void finishedTasks(String plugin)
     {
-        if(this.activeDownloads.contains(this.websiteMap.get(pluginCode)))
+        if(this.activeDownloads.contains(plugin))
         {
-            this.activeDownloads.remove(this.websiteMap.get(pluginCode));
-            System.out.println("Finishing: " + this.websiteMap.get(pluginCode) );
+            this.activeDownloads.remove(plugin);
+            System.out.println("Finishing: " + plugin );
         }
     }
 
