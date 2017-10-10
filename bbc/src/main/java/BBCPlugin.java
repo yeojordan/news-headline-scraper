@@ -15,7 +15,7 @@ public class BBCPlugin extends NewsPlugin
         // List<Headline> headlines = new LinkedList<>();
         try
         {
-            super.running(this.url.hashCode());
+            super.running(this);
             this.interrupted = true;
             this.rawHTML = super.downloadHTML();
 
@@ -38,7 +38,7 @@ public class BBCPlugin extends NewsPlugin
                 }
             }
             this.interrupted = false;
-            super.lastHeadline();
+            super.finished(this);
             
 
         }

@@ -58,8 +58,8 @@ public class Window extends JFrame
         // this.headlines = new HashMap<>();
 
         //Set up backend map
-        controller.getWebsites().stream()
-                                .forEach((x)-> this.websiteMap.put(x.hashCode(), x));        
+        // controller.getWebsites().stream()
+        //                         .forEach((x)-> this.websiteMap.put(x.hashCode(), x));        
 
         // Top Panel        
         JPanel searchPanel = new JPanel(new FlowLayout());     
@@ -98,7 +98,7 @@ public class Window extends JFrame
             {
                 //searchResults.clear();
                 System.out.println("Cancel button pressed " +headlines.keySet().size());
-                controller.cancel();
+                controller.cancelDownloads();
                 // LOGGER.log(info, "Cancel pressed");
             }
         });
@@ -113,7 +113,7 @@ public class Window extends JFrame
                 System.out.println("Update button pressed :" +headlines.keySet().size());
                 Set<Integer> copy = headlines.keySet().stream()
                                                       .collect(Collectors.toSet());
-                controller.update();//( copy );
+                controller.updateAll();//( copy );
                 System.out.println("SIZE AFTER PASS " + headlines.keySet().size());
                 // progress();
                 // LOGGER.log(info, "Cancel pressed");
@@ -129,43 +129,43 @@ public class Window extends JFrame
         pane.add(bar, BorderLayout.SOUTH);
     }
 
-    public void update(java.util.List<Integer> articleIDs, java.util.List<Headline> headlines)
-    {
-        System.out.println("UPDATING UI LIST\nto delete: " + articleIDs.size() + "\nto add " + headlines.size());
+    // public void update(java.util.List<Integer> articleIDs, java.util.List<Headline> headlines)
+    // {
+    //     System.out.println("UPDATING UI LIST\nto delete: " + articleIDs.size() + "\nto add " + headlines.size());
 
 
-        articleIDs.stream()
-                  .forEach((x) -> this.headlines.remove(x));
+    //     articleIDs.stream()
+    //               .forEach((x) -> this.headlines.remove(x));
 
-        // Add new entries
-        headlines.stream()
-                 .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
-                                                     + x.getHeadline()).hashCode(), x));
+    //     // Add new entries
+    //     headlines.stream()
+    //              .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
+    //                                                  + x.getHeadline()).hashCode(), x));
 
-        // Set article source
-        headlines.stream()
-                 .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
-                                            + x.getHeadline()).hashCode()).
-                                            setWebsite(this.websiteMap.get(x.getHash())));
+    //     // Set article source
+    //     headlines.stream()
+    //              .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
+    //                                         + x.getHeadline()).hashCode()).
+    //                                         setWebsite(this.websiteMap.get(x.getHash())));
 
 
-        SwingUtilities.invokeLater(() -> {
-            if( articleIDs.size() > 0)
-                this.searchResults.removeAllElements(); // O(n)
+    //     SwingUtilities.invokeLater(() -> {
+    //         if( articleIDs.size() > 0)
+    //             this.searchResults.removeAllElements(); // O(n)
             
-            if( headlines.size() > 0)
-                this.headlines.values().stream()
-                                    .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
-                                    // .filter((x) ->  this.searchResults.contains(x.toString()) == false ) // Only insert if it isn't in the list 
-                                    .forEach((x) -> {  this.searchResults.addElement(x.toString());
-                                        // System.out.println(x.toString());
-                                    });
+    //         if( headlines.size() > 0)
+    //             this.headlines.values().stream()
+    //                                 .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
+    //                                 // .filter((x) ->  this.searchResults.contains(x.toString()) == false ) // Only insert if it isn't in the list 
+    //                                 .forEach((x) -> {  this.searchResults.addElement(x.toString());
+    //                                     // System.out.println(x.toString());
+    //                                 });
             
 
-        });
+    //     });
 
-        System.out.println("AFTER update" + this.headlines.size());
-    }
+    //     System.out.println("AFTER update" + this.headlines.size());
+    // }
 
     public void runningTasks(int pluginCode)
     {
@@ -190,6 +190,23 @@ public class Window extends JFrame
         }
     }
 
+    public void update(java.util.List<Headline> updateList)
+    {
+        System.out.println("RECEIVING UPDATES");
+        SwingUtilities.invokeLater( () -> {
+            if(updateList.size() > 0)
+            {
+                this.searchResults.clear();
+                
+                updateList.stream()
+                          .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
+                          .forEach((x) -> {  this.searchResults.addElement(x.toString());
+                        });
+            }
+
+
+        });
+    }
     // public void add(java.util.List<String> list)
     // {
     //     SwingUtilities.invokeLater(()->{

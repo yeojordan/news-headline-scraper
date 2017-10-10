@@ -19,7 +19,7 @@ public class NYTimesPlugin extends NewsPlugin
         // List<Headline> headlines = new LinkedList<>();
         try
         {
-            super.running(this.url.hashCode());
+            super.running(this);
             this.interrupted = true;
             this.rawHTML = super.downloadHTML();
 
@@ -46,7 +46,7 @@ System.out.println("count " + count);
                 
             }
             this.interrupted = false;
-            super.lastHeadline();
+            super.finished(this);
             
         }
         catch(Exception e)

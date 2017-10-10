@@ -3,7 +3,142 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
+
 public class NewsController
+{
+    private Window ui = null;
+    private Map<String, NewsPlugin> plugins;
+    private ExecutorService exService;
+    private ExecutorService exScheduled;
+    private NewsFilter filter;
+    
+    private Map<String, Future<?>> scheduledFutures;
+    private Map<String, Future<?>> updateFutures;
+    private Map<String, Boolean> runningPlugins;
+    // private Thread scheduler;
+
+    public NewsController(String[] pluginLocations)
+    {
+        PluginLoader loader = new PluginLoader();
+        this.plugins = new HashMap<>();
+        this.scheduledFutures = new HashMap<>();
+        this.updateFutures = new HashMap<>();
+        this.runningPlugins = new HashMap<>();
+        this.filter = new NewsFilter();
+
+        this.plugins.values().stream()
+                             .forEach( x -> {
+                                 this.scheduledFutures.put(x.retrieveURL(), null);
+                                 this.updateFutures.put(x.retrieveURL(), null);
+                                });
+
+        // Add each plugin to a map
+        for(String pluginName : pluginLocations)
+        {
+            try
+            {
+                NewsPlugin plugin = loader.loadPlugin(pluginName);
+                plugin.setFrequency(15);
+                plugin.setController(this);
+                this.plugins.put(plugin.retrieveURL(), plugin);
+            }
+            catch(ClassNotFoundException e)
+            {}
+        }
+
+        // Create executor service for scheduled and update threads
+        this.exScheduled = Executors.newScheduledThreadPool(4);
+        this.exService = Executors.newFixedThreadPool(4);
+
+        // Schedule each plugin and keep each Future in a map
+        this.plugins.values().stream()
+                             .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
+                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, 0, x.getFreq() ,TimeUnit.MINUTES)) );
+    }
+
+    public void setUI(Window ui)
+    {
+        this.ui = ui;
+        this.filter.setUI(ui);
+    }
+
+    public void updateAll()
+    {
+        // Find all the plugins not currently running and submit them
+        this.runningPlugins.keySet().stream() 
+                                    .filter(x -> this.runningPlugins.get(x) == false)
+                                    .forEach(x -> {
+                                        this.updateFutures.put( x, this.exService.submit(this.plugins.get(x)));
+                                        this.filter.running(x);
+                                    });
+    }
+
+    public void cancelDownloads()
+    {
+        // Find all the plugins, currently running and interrupt them
+        this.runningPlugins.keySet().stream()
+                                    .filter(x -> this.runningPlugins.get(x) == true)
+                                    .forEach(x -> { 
+                                        this.scheduledFutures.get(x).cancel(true); // Cancel a scheduled plugin
+                                        this.updateFutures.get(x).cancel(true); // Cancel an update plugin
+                                    });
+    }
+
+    public void running(NewsPlugin running)
+    {
+        System.out.println("PLUGIN RUNNING: " + running.retrieveURL());
+        this.runningPlugins.put(running.retrieveURL(), true);
+        this.filter.running(running.retrieveURL()); // Let filter know which plugin is running
+    }
+    
+    public void finishedRunning(NewsPlugin finRunning)
+    {
+        System.out.println("PLUGIN FINISHED: " + finRunning.retrieveURL());
+        this.runningPlugins.put(finRunning.retrieveURL(), false);
+        this.filter.finished(finRunning.retrieveURL()); 
+    }
+
+    public void submitHeadline(Headline headline)
+    {
+        this.filter.addHeadline(headline);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*public class NewsController
 {
     private Window ui = null;
     private List<NewsPlugin> plugins; 
@@ -105,19 +240,19 @@ public class NewsController
         //     System.out.println(e.getMessage());
         // }
     }
-
+*/
     /**
      * Set the controller's reference to the UI
      */
-    public void setUI(Window ui)
+/*    public void setUI(Window ui)
     {
         this.ui = ui;
-    }
+    } */
 
     /** 
      * For the UI update button to notify that an update has been requested from the user
      */
-    public void update()//Set<Integer> uiHeadlines)
+    /*public void update()//Set<Integer> uiHeadlines)
     {
         this.poller = this.ex.submit( () -> {
         // int threadPoolSize = 4;
@@ -399,11 +534,11 @@ System.out.println("STARTING retrieve headlines from UIMap");
             System.out.println("Could not add headline to blocking queue");
         }
     }
-
+*/
     /**  
      * For the UI cancel button to notify that update cancel has been requested from the user
     */
-    public void cancel()
+  /*  public void cancel()
     {
         System.out.println("Controller cancelling\nEmptying blocking queue");
 
@@ -425,22 +560,22 @@ System.out.println("STARTING retrieve headlines from UIMap");
         // }
         
     }
-
+*/
     /**
      * Retrieve a list of the sources (plugins) loaded into the controller
      */
-    public List<String> getWebsites()
+/*    public List<String> getWebsites()
     {
         return this.plugins.stream()
                            .map(NewsPlugin::retrieveURL)
                            .collect(Collectors.toCollection(LinkedList::new));
-    }
+    }*/
 
     /**
      * Update the UI with currently running tasks
      */
-    public void running(int pluginCode)
+    /*public void running(int pluginCode)
     {
         this.ui.runningTasks(pluginCode);
     }
-}
+}*/

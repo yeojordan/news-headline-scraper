@@ -8,6 +8,7 @@ public class NewsHeadlines
             @Override
             public void run()
             {
+                System.out.println("INITIALISING");
                 NewsController controller = new NewsController(args);
                 Window window = new Window(controller);
                 controller.setUI(window);

@@ -44,15 +44,20 @@ public abstract class NewsPlugin implements Runnable
         this.controller.submitHeadline(headline);   
     }
 
-    protected void lastHeadline()
-    {
-        this.controller.submitHeadline( new Headline( retrieveURL() + " POISON", -1, -1, " ") );
-        this.controller.updateUI();
-    }
+    // protected void lastHeadline()
+    // {
+    //     this.controller.submitHeadline( new Headline( retrieveURL() + " POISON", -1, -1, " ") );
+    //     this.controller.updateUI();
+    // }
 
-    public void running(int pluginCode)
+    public void finished(NewsPlugin plugin)
     {
-        this.controller.running(pluginCode);
+        this.controller.finishedRunning(plugin);
+    }
+    
+    public void running(NewsPlugin plugin)
+    {
+        this.controller.running(plugin);
     }
 
     public StringBuilder downloadHTML()
