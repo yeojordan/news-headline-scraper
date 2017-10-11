@@ -13,6 +13,7 @@ public class NewsFilter
     private String finished;
     private boolean programRunning;
     private Thread filter;
+    private boolean cancelled;
 
     public NewsFilter()
     {
@@ -21,6 +22,7 @@ public class NewsFilter
         this.retrieved = new HashMap<>();
         this.running = new LinkedList<>();
         this.programRunning = true;
+        this.cancelled = false;
         filter = new Thread(()->filter()); 
         filter.start();
     }
@@ -82,18 +84,22 @@ System.out.println("FINISHED WAITING");
                     // Send updates to UI
                     System.out.println("SENDING UPDATES");
                     this.ui.finishedTasks(finished);
-
-                    this.ui.update(update);
+                    if( !cancelled )
+                    {
+                        this.ui.update(update);
+                    }
                 }
             }
         }
         catch(InterruptedException e)
         {
             System.out.println("Interrupted filtering");
+            this.queue.clear(); // Empty queue
+            this.retrieved = new HashMap<>(); // Reset all running plugins
         }
     }
 
-    public List<Headline> updatedList(Map<String, Headline> updateMap)
+    public List<Headline> updatedList(Map<String, Headline> updateMap) throws InterruptedException
     {
         Map<String, Headline> uiSourceMap = this.uiContents.get(finished);
         List<Headline> updated = new LinkedList<>();
@@ -103,6 +109,7 @@ System.out.println("FINISHED WAITING");
         /*updateMap.keySet().stream()
                           .filter(x -> uiSourceMap.containsKey(x))
                           .forEach(x -> updated.add(uiSourceMap.get(x))); */
+                          if(updateMap != null){
         for( String key : updateMap.keySet() )
         {
             if( uiSourceMap.containsKey(key) )
@@ -114,7 +121,7 @@ System.out.println("FINISHED WAITING");
                 updated.add( updateMap.get(key));
             }
         }
-
+    }
         // Update the uiMap
         uiSourceMap.clear();
         for(Headline head : updated)
@@ -174,5 +181,11 @@ System.out.println("FINISHED WAITING");
     public void setUI(Window ui)
     {
         this.ui = ui;
+    }
+
+    public void cancel()
+    {
+        // this.filter.interrupt();
+        this.cancelled = true;
     }
 }

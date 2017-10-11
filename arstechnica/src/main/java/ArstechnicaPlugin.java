@@ -10,7 +10,8 @@ public class ArstechnicaPlugin extends NewsPlugin
     // private HeadlineFactory fact;
     private String url = "https://arstechnica.com";
     @Override
-    public void run() throws IllegalArgumentException
+    public void run() 
+    // throws IllegalArgumentException
     {
         // List<Headline> headlines = new LinkedList<>();
         try
@@ -38,15 +39,15 @@ public class ArstechnicaPlugin extends NewsPlugin
             
 
         }
-        catch(Exception e)
+        catch(InterruptedException e)
         {
-            throw new IllegalArgumentException("Unable to create arstechnica headline", e);
+            // throw new IllegalArgumentException("Unable to create arstechnica headline", e);
         }
         
 
     }
 
-    public Headline createHeadline(String headlineTag, long time)
+    public Headline createHeadline(String headlineTag, long time) throws InterruptedException
     {
         Headline headline;
         // String matcher;
@@ -89,7 +90,7 @@ public class ArstechnicaPlugin extends NewsPlugin
         return this.interrupted;
     }
 
-    public List<String> parse()
+    public List<String> parse() throws InterruptedException
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;

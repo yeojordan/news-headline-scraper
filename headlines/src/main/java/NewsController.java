@@ -54,7 +54,7 @@ public class NewsController
         this.plugins.values().stream()
                              .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
                                         ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, 10, x.getFreq() ,TimeUnit.MINUTES)) );
-        System.out.println( this.scheduledFutures.get("http://www.bbc.com/news").toString());
+        // System.out.println( this.scheduledFutures.get("http://www.bbc.com/news").toString());
     }
 
     public void setUI(Window ui)
