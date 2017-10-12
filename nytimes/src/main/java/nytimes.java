@@ -1,7 +1,8 @@
 import java.util.*;
 import java.text.*;
 
-public class NYTimesPlugin extends NewsPlugin
+// public class NYTimesPlugin extends NewsPlugin
+public class nytimes extends NewsPlugin
 {
     private String match = "<h2 class=\"story-heading\">";//"<article class=\"story "; 
     private String endMatch = "</h2>";//"</article>";

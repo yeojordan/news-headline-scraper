@@ -1,16 +1,18 @@
 import java.util.*;
 import java.text.*;
 
-public class BBCPlugin extends NewsPlugin
+// public class ArstechnicaPlugin extends NewsPlugin
+public class arstechnica extends NewsPlugin
 {
-    private String match = "<h3 class=\"gs-c-promo-heading__title";
-    private String endMatch = "</h3>";
+    private String match = "<h2>";
+    private String endMatch = "</h2>";
     private StringBuilder rawHTML;
     private boolean interrupted;
     // private HeadlineFactory fact;
-    private String url = "http://www.bbc.com/news";
+    private String url = "https://arstechnica.com";
     @Override
-    public void run() throws IllegalArgumentException
+    public void run() 
+    // throws IllegalArgumentException
     {
         // List<Headline> headlines = new LinkedList<>();
         try
@@ -20,7 +22,7 @@ public class BBCPlugin extends NewsPlugin
             this.rawHTML = super.downloadHTML();
 
             long time = new Date().getTime();
-            SimpleDateFormat format = new SimpleDateFormat("YY-MM-dd hh:mma");
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
 
             // System.out.println("CURRENT DATE TIME" + new Date().toString());
             // System.out.println("CURRENT TIME" + format.format(new Date(tempTime)));
@@ -31,58 +33,51 @@ public class BBCPlugin extends NewsPlugin
             for(String tag : hTags)
             {
                 // Invoke super method to send each headline created to the controller
-                Headline temp = createHeadline(tag, time);
-                if( temp != null )
-                {
-                    super.sendHeadline(temp);
-                }
+                super.sendHeadline( createHeadline(tag, time) );
             }
             this.interrupted = false;
             super.finished(this);
             
 
         }
-        catch(Exception e)
+        catch(InterruptedException e)
         {
-            throw new IllegalArgumentException("Unable to create arstechnica headline", e);
+            // throw new IllegalArgumentException("Unable to create arstechnica headline", e);
         }
         
 
     }
 
-    public Headline createHeadline(String headlineTag, long time)
+    public Headline createHeadline(String headlineTag, long time) throws InterruptedException
     {
         Headline headline;
         // String matcher;
-        String startMatch = ">";
+        String urlMatch = "<a href=\"";
         String urlEndMatch ="\">";
         // matcher = this.pluginKeys.get(hash);
 
-        if( headlineTag.contains("</div>"))
-        {
-            return null;
-        }
         StringBuilder head = new StringBuilder(headlineTag);
-        int urlIdx = head.indexOf(startMatch);
+        int urlIdx = head.indexOf(urlMatch);
         
-        head.delete(0, urlIdx + startMatch.length());
-        // int endURLIdx = head.indexOf(urlEndMatch);
-        
-        // String source = head.substring(0, endURLIdx);
-        
-        System.out.println("SOURCE: " + headlineTag);
-        // head.delete(0, endURLIdx+urlEndMatch.length());
-
-        // Replace &#x27; with single quote
-        String quote = "&#x27;";
-        while( head.indexOf(quote) != -1 )
+        // Replace <em> and </em> with single quotes
+        String quote = "<em>";
+        String endQuote = "</em>";
+        while( head.indexOf(quote) != -1)
         {
             int idx = head.indexOf(quote);
             head.replace(idx, idx+quote.length(), "'");
+            idx = head.indexOf(endQuote);
+            head.replace(idx, idx+endQuote.length(), "'");
         }
 
-
-        int headEndIdx = head.indexOf("</h3>");
+        head.delete(0, urlIdx + urlMatch.length());
+        int endURLIdx = head.indexOf(urlEndMatch);
+        
+        String source = head.substring(0, endURLIdx);
+        
+        System.out.println("SOURCE: " + source);
+        head.delete(0, endURLIdx+urlEndMatch.length());
+        int headEndIdx = head.indexOf("</a>");
         String headlineText = head.substring(0, headEndIdx);
         // System.out.println("HEADLINE: " + headlineText);
 
@@ -96,7 +91,7 @@ public class BBCPlugin extends NewsPlugin
         return this.interrupted;
     }
 
-    public List<String> parse()
+    public List<String> parse() throws InterruptedException
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
@@ -124,7 +119,7 @@ public class BBCPlugin extends NewsPlugin
 
     public void update()
     {
-        System.out.println("BBC updating: " + super.getFreq());
+        System.out.println("Arstechnica updating: " + super.getFreq());
     }
 
     public void setFrequency(int updateFrequency)
@@ -139,7 +134,7 @@ public class BBCPlugin extends NewsPlugin
 
     public String retrieveURL()
     {
-        return this.url;
+        return "https://arstechnica.com";
     }
     
     public String getKey()
