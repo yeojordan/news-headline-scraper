@@ -12,7 +12,7 @@ public class NewsHeadlines
                 NewsController controller = new NewsController(args);
                 controller.setFilter(filter);
                 Window window = new Window(filter);
-                
+                Clock clock = new Clock(window);
                 filter.setUI(window);
                 filter.setController(controller);
                 window.setVisible(true);

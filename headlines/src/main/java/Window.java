@@ -4,13 +4,13 @@ import javax.swing.*;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Date;
-import java.util.List.*;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
+// import java.util.List.*;
+// import java.util.Map;
+// import java.util.HashMap;
+// import java.util.Set;
 // For logging
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
+// import java.util.stream.Collectors;
 
 public class Window extends JFrame
 {
@@ -18,6 +18,7 @@ public class Window extends JFrame
     private java.util.List<String> activeDownloads = new java.util.LinkedList<>();
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
     private NewsFilter filter;
+    private JLabel clockTime;
 
     public Window(final NewsFilter filter)
     {
@@ -29,23 +30,23 @@ public class Window extends JFrame
         this.filter = filter;
 
         JPanel clock = new JPanel(new FlowLayout());
-        JLabel clockTime = new JLabel();
-
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask(){
-            @Override
-            public void run()
-            {
-                SwingUtilities.invokeLater(new Runnable(){
-                    @Override
-                    public void run()
-                    {
-                        clockTime.setText(new Date().toString());
-                    }    
-                });
+        this.clockTime = new JLabel();
+        // this.clockTime.setText(new Date().toString());
+        // Timer timer = new Timer();
+        // timer.scheduleAtFixedRate(new TimerTask(){
+        //     @Override
+        //     public void run()
+        //     {
+        //         SwingUtilities.invokeLater(new Runnable(){
+        //             @Override
+        //             public void run()
+        //             {
+        //                 clockTime.setText(new Date().toString());
+        //             }    
+        //         });
                 
-            }
-        }, 0,250);
+        //     }
+        // }, 0,250);
 
     
         // Top Panel        
@@ -57,7 +58,6 @@ public class Window extends JFrame
         JButton cancelButton = new JButton("Cancel");
         
         // Clock
-        
         clock.add(new JLabel("Current Time"));
 
         searchResults = new DefaultListModel<>();        
@@ -72,7 +72,7 @@ public class Window extends JFrame
         
         contentPane.setLayout(new BorderLayout());
         // contentPane.add(searchPanel, BorderLayout.NORTH);
-        contentPane.add(clockTime, BorderLayout.NORTH);
+        contentPane.add(this.clockTime, BorderLayout.NORTH);
         contentPane.add(resultsList, BorderLayout.CENTER);   
         contentPane.add(auxPanel, BorderLayout.SOUTH);
         // pack();
@@ -142,24 +142,33 @@ public class Window extends JFrame
                 System.out.println("Finishing: " + plugin );
             }
         });
-        
     }
 
+    /**
+     * To receive the updated list of news headlines
+     */
     public void update(java.util.List<Headline> updateList)
     {
-        System.out.println("RECEIVING UPDATES" + updateList.size() );
         SwingUtilities.invokeLater( () -> {
             if(updateList.size() > 0)
             {
+                // Clearing the entire list, rather than finding entries to delete
+                // Faster to clear and add all than to find and delete, due to the usage of a DefaultListModel
                 this.searchResults.clear();
-                
+
+                // Sort all headlines based on download time. 
                 updateList.stream()
                           .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
                           .forEach((x) -> {  this.searchResults.addElement(x.toString());
                         });
             }
+        });
+    }
 
-
+    public void updateTime(String time)
+    {
+        SwingUtilities.invokeLater( () -> {
+            this.clockTime.setText(time);
         });
     }
 }
