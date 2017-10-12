@@ -15,6 +15,7 @@ public class NewsController
     private Map<String, Future<?>> scheduledFutures;
     private Map<String, Future<?>> updateFutures;
     private Map<String, Boolean> runningPlugins;
+    private final String pluginPath = "/build/classes/main/";
     // private Thread scheduler;
 
     public NewsController(String[] pluginLocations)
@@ -25,6 +26,9 @@ public class NewsController
         this.updateFutures = new HashMap<>();
         this.runningPlugins = new HashMap<>();
         this.filter = new NewsFilter();
+        String pluginStartDir = "";
+        String pluginNameFull = "";
+
 
         this.plugins.values().stream()
                              .forEach( x -> {
@@ -37,6 +41,7 @@ public class NewsController
         {
             try
             {
+                pluginName = pluginName + this.pluginPath + pluginName + ".class";
                 NewsPlugin plugin = loader.loadPlugin(pluginName);
                 plugin.setFrequency(15);
                 plugin.setController(this);

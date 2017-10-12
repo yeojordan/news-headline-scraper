@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.net.HttpURLConnection;
+import java.net.*;
 
 /** 
  * NewsPlugin abstract class
@@ -110,11 +111,14 @@ public abstract class NewsPlugin implements Runnable
                 }
             }
             catch(ClosedByInterruptException e){}
+            catch(UnknownHostException e)
+            {
+                System.out.println("NO INTERNET");
+            }
             catch(IOException e){}
         }
-        catch(Exception e)
-        {}
-System.out.println("RAW HTML Size: " + rawHTML.size());
+        catch(Exception e){}
+
         return parsedHTML;
     }
 

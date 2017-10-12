@@ -169,25 +169,25 @@ public class Window extends JFrame
 
     public void runningTasks(String plugin)
     {
-    
-        // if(!this.activeDownloads.contains(plugin))
-        // {
-            this.activeDownloads.add(plugin);
-            System.out.println("Running: " + plugin );
-        // }
-
-        // SwingUtilities.invokeLater( () -> {
-
-        // });
+        SwingUtilities.invokeLater( () -> {
+            if(!this.activeDownloads.contains(plugin))
+            {
+                this.activeDownloads.add(plugin);
+                System.out.println("Running: " + plugin );
+            }
+        });
     }
 
     public void finishedTasks(String plugin)
-    {
-        if(this.activeDownloads.contains(plugin))
-        {
-            this.activeDownloads.remove(plugin);
-            System.out.println("Finishing: " + plugin );
-        }
+    {   
+        SwingUtilities.invokeLater( () -> {
+            if(this.activeDownloads.contains(plugin))
+            {
+                this.activeDownloads.remove(plugin);
+                System.out.println("Finishing: " + plugin );
+            }
+        });
+        
     }
 
     public void update(java.util.List<Headline> updateList)

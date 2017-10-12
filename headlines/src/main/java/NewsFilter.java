@@ -157,10 +157,10 @@ System.out.println("FINISHED WAITING");
             System.out.println("ADDING TO RUNNING LIST (NF): " + plugin);
             this.running.add(plugin);
             this.uiContents.putIfAbsent(plugin, new HashMap<>());
-            
+            this.ui.runningTasks(plugin);    
             System.out.println("SENT RUNNING");
         }
-        // this.ui.runningTasks(plugin);
+        
         System.out.println("SENT RUNNING after sync");
     }
 
