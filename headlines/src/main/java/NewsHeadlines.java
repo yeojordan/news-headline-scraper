@@ -8,10 +8,13 @@ public class NewsHeadlines
             @Override
             public void run()
             {
-                System.out.println("INITIALISING");
+                NewsFilter filter = new NewsFilter();
                 NewsController controller = new NewsController(args);
-                Window window = new Window(controller);
-                controller.setUI(window);
+                controller.setFilter(filter);
+                Window window = new Window(filter);
+                
+                filter.setUI(window);
+                filter.setController(controller);
                 window.setVisible(true);
             }
         });

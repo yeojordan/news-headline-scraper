@@ -75,7 +75,7 @@ public class arstechnica extends NewsPlugin
         
         String source = head.substring(0, endURLIdx);
         
-        System.out.println("SOURCE: " + source);
+        // System.out.println("SOURCE: " + source);
         head.delete(0, endURLIdx+urlEndMatch.length());
         int headEndIdx = head.indexOf("</a>");
         String headlineText = head.substring(0, headEndIdx);

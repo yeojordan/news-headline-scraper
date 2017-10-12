@@ -31,13 +31,9 @@ public class nytimes extends NewsPlugin
             // System.out.println("CURRENT TIME" + format.format(new Date(tempTime)));
 
             List<String> hTags = parse();
-System.out.println("HTAG SIZE" + hTags.size());
-            // int hash = this.retrieveURL().hashCode();
-            int count = 0;
+
             for(String tag : hTags)
             {
-count++;
-System.out.println("count " + count);
                 // Invoke super method to send each headline created to the controller
                 Headline temp = createHeadline(tag, time);
                 if( temp != null )
@@ -76,21 +72,15 @@ System.out.println("count " + count);
             {            
                 String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
                 this.rawHTML.delete(0, endIdx+5); //stop sequence.length()
-                System.out.println("    " + retrieved);
                 headlineTags.add(retrieved);
             }
         }
-        
-        System.out.println("            CONTAINS: " +headlineTags.stream()
-                    .filter(x-> x.contains("<h2 class=\"story-heading\">") )
-                    .count());
 
         return headlineTags;
     }
 
     public Headline createHeadline(String headlineTag, long time)
     {
-        System.out.println("     "+headlineTag);
         Headline headline;
         // String matcher;
         String urlMatch = "<a href=\"";
@@ -134,7 +124,7 @@ System.out.println("count " + count);
         headlineText = headlineText.trim();
         headline = new Headline(headlineText, time, this.url.hashCode(), this.url);
         
-        System.out.println(headlineText);
+        // System.out.println(headlineText);
         return headline;
     }
 

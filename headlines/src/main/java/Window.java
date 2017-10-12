@@ -15,28 +15,21 @@ import java.util.stream.Collectors;
 public class Window extends JFrame
 {
     private DefaultListModel<String> searchResults;
-    private Map<Integer, String> websiteMap = new HashMap<>();
-    private Map<Integer, Headline> headlines = new HashMap<>();
     private java.util.List<String> activeDownloads = new java.util.LinkedList<>();
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
+    private NewsFilter filter;
 
-    public Window(final NewsController controller)
+    public Window(final NewsFilter filter)
     {
         // Basic setup 
         super("News Headlines");
         super.setSize(new Dimension(800, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        this.filter = filter;
+
         JPanel clock = new JPanel(new FlowLayout());
         JLabel clockTime = new JLabel();
-        // Timer timer2 = new Timer();
-        // timer2.scheduleAtFixedRate( new TimerTask(){
-        //     @Override 
-        //     public void run(){
-        //         System.out.println("            " +headlines.keySet().size());
-        //     }
-        // }, 0, 1000);
-
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask(){
@@ -54,13 +47,7 @@ public class Window extends JFrame
             }
         }, 0,250);
 
-        
-        // this.headlines = new HashMap<>();
-
-        //Set up backend map
-        // controller.getWebsites().stream()
-        //                         .forEach((x)-> this.websiteMap.put(x.hashCode(), x));        
-
+    
         // Top Panel        
         JPanel searchPanel = new JPanel(new FlowLayout());     
         searchPanel.add(new JLabel("News Headlines will be listed below"));
@@ -90,19 +77,27 @@ public class Window extends JFrame
         contentPane.add(auxPanel, BorderLayout.SOUTH);
         // pack();
 
+        addCancelListener(cancelButton);
+        addUpdateListener(updateButton);
+    }
 
+    private void addCancelListener(JButton cancelButton)
+    {
         // When the "Clear results" button is pressed...
         cancelButton.addActionListener(new ActionListener()
         {   
             @Override public void actionPerformed(ActionEvent e)
             {
                 //searchResults.clear();
-                System.out.println("Cancel button pressed " +headlines.keySet().size());
-                controller.cancelDownloads();
+                System.out.println("Cancel button pressed");
+                filter.cancel();
                 // LOGGER.log(info, "Cancel pressed");
             }
         });
+    }   
 
+    private void addUpdateListener(JButton updateButton)
+    {
         // When the "Clear results" button is pressed...
         updateButton.addActionListener(new ActionListener()
         {   
@@ -110,17 +105,15 @@ public class Window extends JFrame
             {
                 //searchResults.clear();
                 //Force and update
-                System.out.println("Update button pressed :" +headlines.keySet().size());
-                Set<Integer> copy = headlines.keySet().stream()
-                                                      .collect(Collectors.toSet());
-                controller.updateAll();//( copy );
-                System.out.println("SIZE AFTER PASS " + headlines.keySet().size());
+                System.out.println("Update button pressed");
+
+                filter.update();//( copy );
                 // progress();
                 // LOGGER.log(info, "Cancel pressed");
             }
         });
-
     }
+
     public void progress()
     {
         Container pane = getContentPane();
@@ -128,44 +121,6 @@ public class Window extends JFrame
         bar.setIndeterminate(true);
         pane.add(bar, BorderLayout.SOUTH);
     }
-
-    // public void update(java.util.List<Integer> articleIDs, java.util.List<Headline> headlines)
-    // {
-    //     System.out.println("UPDATING UI LIST\nto delete: " + articleIDs.size() + "\nto add " + headlines.size());
-
-
-    //     articleIDs.stream()
-    //               .forEach((x) -> this.headlines.remove(x));
-
-    //     // Add new entries
-    //     headlines.stream()
-    //              .forEach((x) -> this.headlines.put((this.websiteMap.get(x.getHash())
-    //                                                  + x.getHeadline()).hashCode(), x));
-
-    //     // Set article source
-    //     headlines.stream()
-    //              .forEach((x) -> this.headlines.get((this.websiteMap.get(x.getHash())
-    //                                         + x.getHeadline()).hashCode()).
-    //                                         setWebsite(this.websiteMap.get(x.getHash())));
-
-
-    //     SwingUtilities.invokeLater(() -> {
-    //         if( articleIDs.size() > 0)
-    //             this.searchResults.removeAllElements(); // O(n)
-            
-    //         if( headlines.size() > 0)
-    //             this.headlines.values().stream()
-    //                                 .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
-    //                                 // .filter((x) ->  this.searchResults.contains(x.toString()) == false ) // Only insert if it isn't in the list 
-    //                                 .forEach((x) -> {  this.searchResults.addElement(x.toString());
-    //                                     // System.out.println(x.toString());
-    //                                 });
-            
-
-    //     });
-
-    //     System.out.println("AFTER update" + this.headlines.size());
-    // }
 
     public void runningTasks(String plugin)
     {
@@ -207,13 +162,4 @@ public class Window extends JFrame
 
         });
     }
-    // public void add(java.util.List<String> list)
-    // {
-    //     SwingUtilities.invokeLater(()->{
-    //         for(String str : list )
-    //         {
-    //             this.searchResults.addElement(str);
-    //         }
-    //     });
-    // }
 }

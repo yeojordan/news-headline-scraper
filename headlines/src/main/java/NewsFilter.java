@@ -11,9 +11,9 @@ public class NewsFilter
     private Object monitor = new Object();
     private Window ui;
     private String finished;
-    private boolean programRunning;
     private Thread filter;
     private boolean cancelled;
+    private NewsController controller;
 
     public NewsFilter()
     {
@@ -21,7 +21,6 @@ public class NewsFilter
         this.uiContents = new HashMap<>();
         this.retrieved = new HashMap<>();
         this.running = new LinkedList<>();
-        this.programRunning = true;
         this.cancelled = false;
         filter = new Thread(()->filter()); 
         filter.start();
@@ -88,6 +87,10 @@ System.out.println("FINISHED WAITING");
                     {
                         this.ui.update(update);
                     }
+                    else
+                    {
+                        clear();
+                    }
                 }
             }
         }
@@ -99,6 +102,21 @@ System.out.println("FINISHED WAITING");
         }
     }
 
+    public void clear()
+    {
+        // Clear all running tasks
+        for( String running: this.running)
+        {
+            // Clear all retrieved headlines
+            this.retrieved.put(running, new HashMap<>());
+        }
+        
+        this.running.clear();
+
+        // Reset cancelled flag
+        this.cancelled = false;
+    }
+    
     public List<Headline> updatedList(Map<String, Headline> updateMap) throws InterruptedException
     {
         Map<String, Headline> uiSourceMap = this.uiContents.get(finished);
@@ -183,9 +201,19 @@ System.out.println("FINISHED WAITING");
         this.ui = ui;
     }
 
+    public void setController(NewsController controller)
+    {
+        this.controller = controller;
+    }
+
+    public void update()
+    {
+        this.controller.updateAll();
+    }
+
     public void cancel()
     {
-        // this.filter.interrupt();
+        this.controller.cancelDownloads();
         this.cancelled = true;
     }
 }

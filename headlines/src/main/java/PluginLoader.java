@@ -10,7 +10,6 @@ public class PluginLoader extends ClassLoader
     {
         try
         {
-            System.out.println(fname);
             byte[] classData = Files.readAllBytes(Paths.get(fname));
             Class<?> cls = defineClass(null, classData, 0, classData.length);
             return (NewsPlugin)cls.newInstance();

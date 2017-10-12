@@ -67,12 +67,7 @@ public class bbc extends NewsPlugin
         int urlIdx = head.indexOf(startMatch);
         
         head.delete(0, urlIdx + startMatch.length());
-        // int endURLIdx = head.indexOf(urlEndMatch);
-        
-        // String source = head.substring(0, endURLIdx);
-        
-        System.out.println("SOURCE: " + headlineTag);
-        // head.delete(0, endURLIdx+urlEndMatch.length());
+
 
         // Replace &#x27; with single quote
         String quote = "&#x27;";
