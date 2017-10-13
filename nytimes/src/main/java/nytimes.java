@@ -108,14 +108,31 @@ public class nytimes extends NewsPlugin
             int endURLIdx = head.indexOf(urlEndMatch);
             
             String source = head.substring(0, endURLIdx);
-            
+           
+            // Replace &rsquo; with single quote
+            String quote = "&rsquo;";
+            while( head.indexOf(quote) != -1 )
+            {
+                int idx = head.indexOf(quote);
+                head.replace(idx, idx+quote.length(), "'");
+            }
+
+            String breakTag = "<br>";
+            while( head.indexOf(breakTag) != -1 )
+            {
+                int idx = head.indexOf(breakTag);
+                head.delete(idx, idx+breakTag.length());
+            }
+
+
             // System.out.println("SOURCE: " + source);
             head.delete(0, endURLIdx+urlEndMatch.length());
             int headEndIdx = head.indexOf("</a>");
             headlineText = head.substring(0, headEndIdx);
             // System.out.println("HEADLINE: " + headlineText);
+
+           
         }
-        
         else
         {
             // int start = head.indexOf();
