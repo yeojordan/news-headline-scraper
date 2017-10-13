@@ -79,13 +79,10 @@ System.out.println("FINISHED WAITING");
 
                     // Send updates to UI
                     System.out.println("SENDING UPDATES");
-                    this.ui.finishedTasks(finished + " is running");
+                    
                     if( !cancelled )
                     {
-                        // this.retrieved.keySet().stream()
-                        //                        .forEach( x -> System.out.println(this.retrieved.get(x) ));
-
-                        System.out.println(this.retrieved.size());
+                        this.ui.finishedTasks(finished + " is running");
                         this.ui.update(update);
                     }
                     else
@@ -98,6 +95,7 @@ System.out.println("FINISHED WAITING");
         catch(InterruptedException e)
         {
             System.out.println("Interrupted filtering");
+        
             this.queue.clear(); // Empty queue
             this.retrieved = new HashMap<>(); // Reset all running plugins
         }
@@ -110,6 +108,7 @@ System.out.println("FINISHED WAITING");
         {
             // Clear all retrieved headlines
             this.retrieved.put(running, new HashMap<>());
+            this.ui.finishedTasks(running + " is running");
         }
 
         this.running.clear();
