@@ -16,7 +16,7 @@ public class Clock
                 while( !Thread.currentThread().isInterrupted() )
                 {
                     this.ui.updateTime( getTime() );
-                    Thread.sleep(150);;
+                    Thread.sleep(150);
                 }
             }
             catch(InterruptedException e){}

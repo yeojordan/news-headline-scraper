@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 public class Window extends JFrame
 {
     private DefaultListModel<String> searchResults;
+    private DefaultListModel<String> running;
     private java.util.List<String> activeDownloads = new java.util.LinkedList<>();
     private final static Logger LOGGER = Logger.getLogger(Window.class.getName());
     private NewsFilter filter;
@@ -29,42 +30,35 @@ public class Window extends JFrame
 
         this.filter = filter;
 
-        JPanel clock = new JPanel(new FlowLayout());
-        this.clockTime = new JLabel();
-        // this.clockTime.setText(new Date().toString());
-        // Timer timer = new Timer();
-        // timer.scheduleAtFixedRate(new TimerTask(){
-        //     @Override
-        //     public void run()
-        //     {
-        //         SwingUtilities.invokeLater(new Runnable(){
-        //             @Override
-        //             public void run()
-        //             {
-        //                 clockTime.setText(new Date().toString());
-        //             }    
-        //         });
-                
-        //     }
-        // }, 0,250);
+        JPanel clock = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        this.clockTime = new JLabel("",SwingConstants.CENTER);
 
-    
         // Top Panel        
-        JPanel searchPanel = new JPanel(new FlowLayout());     
-        searchPanel.add(new JLabel("News Headlines will be listed below"));
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));     
+        
 
         // Buttons
         JButton updateButton = new JButton("Update");
         JButton cancelButton = new JButton("Cancel");
         
         // Clock
-        clock.add(new JLabel("Current Time"));
+        clock.add(new JLabel("Current Time",SwingConstants.CENTER));
+        
+        
+        
+        JPanel scroll = new JPanel(new BorderLayout());
 
         searchResults = new DefaultListModel<>();        
         JScrollPane resultsList = new JScrollPane(new JList<String>(searchResults));
+
+        running = new DefaultListModel<>();
+        JScrollPane runningList = new JScrollPane( new JList<String>(running));
+        scroll.add(new JLabel("News Headlines will be listed below", SwingConstants.CENTER), BorderLayout.NORTH);
+        scroll.add(resultsList, BorderLayout.CENTER);
+        scroll.add(runningList, BorderLayout.SOUTH);
         
         JPanel auxPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        // JButton clearButton = new JButton("Clear results");
+        
         auxPanel.add(updateButton);
         auxPanel.add(cancelButton);
 
@@ -73,7 +67,8 @@ public class Window extends JFrame
         contentPane.setLayout(new BorderLayout());
         // contentPane.add(searchPanel, BorderLayout.NORTH);
         contentPane.add(this.clockTime, BorderLayout.NORTH);
-        contentPane.add(resultsList, BorderLayout.CENTER);   
+        // contentPane.add(resultsList, BorderLayout.CENTER);   
+        contentPane.add(scroll, BorderLayout.CENTER);   
         contentPane.add(auxPanel, BorderLayout.SOUTH);
         // pack();
 
@@ -125,9 +120,10 @@ public class Window extends JFrame
     public void runningTasks(String plugin)
     {
         SwingUtilities.invokeLater( () -> {
-            if(!this.activeDownloads.contains(plugin))
+            if(!this.running.contains(plugin))
             {
-                this.activeDownloads.add(plugin);
+                // this.activeDownloads.add(plugin);
+                this.running.addElement(plugin);
                 System.out.println("Running: " + plugin );
             }
         });
@@ -136,9 +132,10 @@ public class Window extends JFrame
     public void finishedTasks(String plugin)
     {   
         SwingUtilities.invokeLater( () -> {
-            if(this.activeDownloads.contains(plugin))
+            if(this.running.contains(plugin))
             {
-                this.activeDownloads.remove(plugin);
+                // this.activeDownloads.remove(plugin);
+                this.running.removeElement(plugin);
                 System.out.println("Finishing: " + plugin );
             }
         });
@@ -158,7 +155,7 @@ public class Window extends JFrame
 
                 // Sort all headlines based on download time. 
                 updateList.stream()
-                          .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
+                        //   .sorted((x,y) -> (int)(x.getTime() - y.getTime()) )
                           .forEach((x) -> {  this.searchResults.addElement(x.toString());
                         });
             }

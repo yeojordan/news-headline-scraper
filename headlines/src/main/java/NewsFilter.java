@@ -71,20 +71,21 @@ System.out.println("FINISHED WAITING");
                     // Leaving all other headlines from other sources in the 
                     currHeadlineMap = this.retrieved.get(finished);
                     
-
                     // Retrieve updated list
                     List<Headline> update = updatedList(currHeadlineMap);
 
+                    // Clear the headline map for a plugin
                     currHeadlineMap = new HashMap<>();
-
-                    // Clear retrievedMap for plugin
-                    this.retrieved.put(finished, new HashMap<>());
 
                     // Send updates to UI
                     System.out.println("SENDING UPDATES");
-                    this.ui.finishedTasks(finished);
+                    this.ui.finishedTasks(finished + " is running");
                     if( !cancelled )
                     {
+                        // this.retrieved.keySet().stream()
+                        //                        .forEach( x -> System.out.println(this.retrieved.get(x) ));
+
+                        System.out.println(this.retrieved.size());
                         this.ui.update(update);
                     }
                     else
@@ -110,7 +111,7 @@ System.out.println("FINISHED WAITING");
             // Clear all retrieved headlines
             this.retrieved.put(running, new HashMap<>());
         }
-        
+
         this.running.clear();
 
         // Reset cancelled flag
@@ -157,11 +158,21 @@ System.out.println("FINISHED WAITING");
                             .forEach(x -> updated.add(updateMap.get(x)));*/
 
         updated.clear();
+        
+        // Create a list from the entire UIMap
+        // this.uiContents.values().stream()
+        //                         .forEach(x -> x.values().stream()
+        //                                                 .forEach( y -> updated.add(y)));
+        List<Headline> tempCollection = new LinkedList<>();
 
         // Create a list from the entire UIMap
         this.uiContents.values().stream()
                                 .forEach(x -> x.values().stream()
-                                                        .forEach( y -> updated.add(y)));
+                                                        .forEach( y -> tempCollection.add(y)));
+
+        tempCollection.stream()
+                      .sorted((x,y) -> (int)(x.getTime() - y.getTime()))
+                      .forEach(x -> updated.add(x));
 
         System.out.println("CAPACITY AFTER SECOND FILTER: " + updated.size());
         return updated;
@@ -175,7 +186,7 @@ System.out.println("FINISHED WAITING");
             System.out.println("ADDING TO RUNNING LIST (NF): " + plugin);
             this.running.add(plugin);
             this.uiContents.putIfAbsent(plugin, new HashMap<>());
-            this.ui.runningTasks(plugin);    
+            this.ui.runningTasks(plugin + " is running");    
             System.out.println("SENT RUNNING");
         }
         

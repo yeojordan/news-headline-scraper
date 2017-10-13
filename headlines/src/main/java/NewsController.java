@@ -37,7 +37,7 @@ public class NewsController
             {
                 pluginName = pluginName + this.pluginPath + pluginName + ".class";
                 NewsPlugin plugin = loader.loadPlugin(pluginName);
-                plugin.setFrequency(1);
+                plugin.setFrequency(4);
                 plugin.setController(this);
                 this.plugins.put(plugin.retrieveURL(), plugin);
             }
@@ -52,7 +52,7 @@ System.out.println("SUBMITTING " + NUM_THREADS);
         // Schedule each plugin and keep each Future in a map
         this.plugins.values().stream()
                              .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
-                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, 10, x.getFreq()*60 ,TimeUnit.SECONDS)) );
+                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, x.getFreq()*60, x.getFreq()*60 ,TimeUnit.SECONDS)) );
     }
 
     public void setFilter(NewsFilter filter)
@@ -119,7 +119,7 @@ System.out.println("UPDATE ALL REQUEST RECEIVED");
         // Schedule each plugin and keep each Future in a map
         this.plugins.values().stream()
                              .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
-                                     ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, x.getFreq(), x.getFreq() ,TimeUnit.MINUTES)) );
+                                     ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, x.getFreq()*60, x.getFreq()*60 ,TimeUnit.SECONDS)) );
 
 
 
