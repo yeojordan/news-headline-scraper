@@ -138,7 +138,6 @@ public class NewsFilter
         this.running.clear();
 
         // Reset cancelled flag
-        // this.cancelled = false;
         synchronized(this.cancelledMonitor)
         {
             this.cancelled = false;
@@ -153,28 +152,26 @@ public class NewsFilter
         Map<String, Headline> uiSourceMap = this.uiContents.get(finished);
         List<Headline> updated = new LinkedList<>();
         
-        // Compare to UI contents
-        // If new headline is in original map, take original value
-        /*updateMap.keySet().stream()
-                          .filter(x -> uiSourceMap.containsKey(x))
-                          .forEach(x -> updated.add(uiSourceMap.get(x))); */
-        if(updateMap != null)
+        if (updateMap != null )
         {
-            for( String key : updateMap.keySet() )
-            {
-                if( uiSourceMap.containsKey(key) )
-                {
-                    updated.add( uiSourceMap.get(key));
-                }
-                else
-                {
-                    updated.add( updateMap.get(key));
-                }
-            }
-        }
+            // Compare to UI contents
+            // If new headline is in original map, take original value
+            updateMap.keySet().stream()
+                              .forEach( (x) -> {
+                                  if( uiSourceMap.containsKey(x) )
+                                  {
+                                      updated.add( uiSourceMap.get(x) );
+                                  }
+                                  else
+                                  {
+                                      updated.add( updateMap.get(x) );
+                                  }
+                              });
+        }                          
         
         // Update the uiMap
         uiSourceMap.clear();
+
         for(Headline head : updated)
         {
             uiSourceMap.put(head.getHeadline(), head);
@@ -182,28 +179,17 @@ public class NewsFilter
 
         this.uiContents.put(finished, uiSourceMap);
 
-
-        // If new headline does not exist in original, add to list
-        /*uiSourceMap.keySet().stream() 
-                            .filter(x -> !updateMap.containsKey(x))
-                            .forEach(x -> updated.add(updateMap.get(x)));*/
-
         updated.clear();
-        
-        // Create a list from the entire UIMap
-        // this.uiContents.values().stream()
-        //                         .forEach(x -> x.values().stream()
-        //                                                 .forEach( y -> updated.add(y)));
-        List<Headline> tempCollection = new LinkedList<>();
 
         // Create a list from the entire UIMap
-        this.uiContents.values().stream()
-                                .forEach(x -> x.values().stream()
-                                                        .forEach( y -> tempCollection.add(y)));
-
-        tempCollection.stream()
-                      .sorted((x,y) -> (int)(x.getTime() - y.getTime()))
-                      .forEach(x -> updated.add(x));
+        this.uiContents.values()
+                       .stream()
+                       .forEach(x -> x.values()
+                       .stream()
+                       .collect(Collectors.toList())
+                       .stream()
+                       .sorted(Comparator.comparing(Headline::getTime))//(y,z) -> (int)(y.getTime() - z.getTime()))
+                       .forEach( y -> updated.add(y)));
 
         return updated;
     }

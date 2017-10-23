@@ -26,8 +26,7 @@ public class bbc extends NewsPlugin
             this.rawHTML = super.downloadHTML();
 
             // Retrieve the current time
-            long time = new Date().getTime();
-            SimpleDateFormat format = new SimpleDateFormat("YY-MM-dd hh:mma");
+            Date time = new Date();
 
             // Parse HTML to retrieve headlines, in HTML
             List<String> hTags = parse();
@@ -37,6 +36,7 @@ public class bbc extends NewsPlugin
             {
                 // Create headline from tag
                 Headline temp = createHeadline(tag, time);
+                
                 // Ensure a valid headline was created
                 if( temp != null )
                 {
@@ -58,7 +58,7 @@ public class bbc extends NewsPlugin
     /**
      * Parse the HTML to create a headline 
      */
-    public Headline createHeadline(String headlineTag, long time)
+    public Headline createHeadline(String headlineTag, Date time)
     {
         Headline headline = null;
         String startMatch = ">";

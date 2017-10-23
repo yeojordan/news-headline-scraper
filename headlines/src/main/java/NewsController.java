@@ -65,12 +65,16 @@ public class NewsController
             catch(ClassNotFoundException e)
             {
                 this.alert(e.getMessage());
-            }
+            }    
         }
+
+        theLogger.info("Plugins Loaded");
 
         // Create executor service for scheduled and update threads
         this.exScheduled = Executors.newScheduledThreadPool(NUM_THREADS);
         this.exService = Executors.newFixedThreadPool(NUM_THREADS);
+
+        theLogger.info("Executor Services created");
 
         // Schedule each plugin and keep each Future in a map
         scheduleUpdates();
@@ -96,6 +100,8 @@ public class NewsController
                                      }
                                  }
                              });
+
+        theLogger.info("All plugins scheduled for update");
     }
 
     /** 
@@ -122,6 +128,7 @@ public class NewsController
                                  }
                              });
 
+        theLogger.info("All active downloads cancelled");
         // Resubmit all periodic update plugins 
         resubmit();
     }
@@ -145,6 +152,8 @@ public class NewsController
 
         // Schedule each periodic update plugin and keep each Future in a map
         scheduleUpdates();
+
+        theLogger.info("Perodic updates rescheduled");
     }
 
     /**
@@ -164,9 +173,10 @@ public class NewsController
                                              x.run(); 
                                          }
                                      }, x.getFreq()*1, x.getFreq()*3 ,TimeUnit.SECONDS)) );
+
+        theLogger.info("Perodic updates scheduled");
     }
 
-    
 
     /**
      * Update the NewsFilter with the currently running plugin
@@ -175,6 +185,7 @@ public class NewsController
     {
         // Let filter know which plugin is running
         this.filter.running(running.retrieveURL()); 
+        theLogger.info("Plugin running: " + running.retrieveURL());
     }
 
     /**
@@ -184,6 +195,7 @@ public class NewsController
     {
         // Let filter know which plugin is finished
         this.filter.finished(finRunning.retrieveURL()); 
+        theLogger.info("Plugin finished: " + finRunning.retrieveURL());
     }
 
     /**
@@ -192,6 +204,7 @@ public class NewsController
     public void submitHeadline(Headline headline)
     {
         this.filter.addHeadline(headline);
+        // theLogger.info("Headline submitted");
     }
 
     /**
@@ -200,6 +213,7 @@ public class NewsController
     public void alert(String msg)
     {
         this.filter.alert(msg);
+        theLogger.warning("Alert sent to user: " + msg);
     }
 
     /**
@@ -208,6 +222,7 @@ public class NewsController
     public void setFilter(NewsFilter filter)
     {
         this.filter = filter;
+        theLogger.info("Set reference to filter");
     }
 }
 

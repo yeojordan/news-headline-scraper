@@ -26,9 +26,7 @@ public class arstechnica extends NewsPlugin
             this.rawHTML = super.downloadHTML();
 
             // Retrieve the current time
-            long time = new Date().getTime();
-            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-
+            Date time = new Date();
             // Parse HTML to retrieve headlines, in HTML
             List<String> hTags = parse();
 
@@ -37,6 +35,7 @@ public class arstechnica extends NewsPlugin
             {
                 // Create headline from tag
                 Headline temp = createHeadline(tag, time);
+                
                 // Ensure a valid headline was created
                 if( temp != null )
                 {
@@ -57,7 +56,7 @@ public class arstechnica extends NewsPlugin
     /**
      * Parse the HTML to create a headline 
      */
-    public Headline createHeadline(String headlineTag, long time) throws InterruptedException
+    public Headline createHeadline(String headlineTag, Date time) throws InterruptedException
     {
         Headline headline = null;
         String urlMatch = "<a href=\"";

@@ -5,13 +5,15 @@ public class Headline
 {
     // Classfields
     private String headline; // Headline text
-    private long time; // Time of download
+    private Date time ;// Time of download
     private String source; // Source for headline
+    private final SimpleDateFormat format  = new SimpleDateFormat("YYYY-MM-dd hh:mma"); // Date format for a headline
+    
 
     /**
      * Constructor for headlines
      */
-    public Headline(String headline, long time, String source)
+    public Headline(String headline, Date time, String source)
     {
         this.headline = headline;
         this.time = time;
@@ -45,7 +47,7 @@ public class Headline
     /**
      * Retrieve the time downloaded
      */
-    public long getTime()
+    public Date getTime()
     {
         return this.time;
     }
@@ -55,10 +57,6 @@ public class Headline
      */
     public String toString()
     {
-        // Create data 
-        Date date = new Date(this.time);
-        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd hh:mma");
-
-        return new String(this.source + ":    "  + this.headline + "     (" + format.format(date) + ")" );
+        return new String(this.source + ":    "  + this.headline + "     (" + format.format(this.time) + ")" );
     }
 }
