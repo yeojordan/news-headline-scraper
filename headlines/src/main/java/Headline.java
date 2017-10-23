@@ -3,57 +3,61 @@ import java.text.*;
 
 public class Headline
 {
-    // private String source;
-    private String headline;
-    private long time;
-    private int sourceHashCode;
-    private String source;
-    // private Date date;
-    // private String url;
+    // Classfields
+    private String headline; // Headline text
+    private long time; // Time of download
+    private String source; // Source for headline
 
-    public Headline(String headline, long time, int sourceHashCode, String source)
+    /**
+     * Constructor for headlines
+     */
+    public Headline(String headline, long time, String source)
     {
         this.headline = headline;
         this.time = time;
-        this.sourceHashCode = sourceHashCode;
         this.source = source;
-        // this.source = source;
-        // this.headline = headline;
-        // this.date = date;
-        // this.url = url;
     }
 
+    /**
+     * Set the news headline's source
+     */
     public void setWebsite(String source)
     {
         this.source = source;
     }
 
+    /**
+     * Retrieve the headline's source
+     */
     public String getSource()
     {
         return this.source;
     }
-    
-    public int getHash()
-    {
-        return this.sourceHashCode;
-    }
 
+    /**
+     * Retrieve the headline text
+     */
     public String getHeadline()
     {
         return this.headline;
     }
 
+    /**
+     * Retrieve the time downloaded
+     */
     public long getTime()
     {
         return this.time;
     }
 
-
-
+    /**
+     * Format the headline for output
+     */
     public String toString()
     {
+        // Create data 
         Date date = new Date(this.time);
-        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd hh:mma");//new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd hh:mma");
 
         return new String(this.source + ":    "  + this.headline + "     (" + format.format(date) + ")" );
     }

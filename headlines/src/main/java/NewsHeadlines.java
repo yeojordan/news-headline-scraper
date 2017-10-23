@@ -8,14 +8,16 @@ public class NewsHeadlines
             @Override
             public void run()
             {
+                // Instantiate necessary classes
                 NewsFilter filter = new NewsFilter();
-                NewsController controller = new NewsController(args);
+                NewsController controller = new NewsController();
                 controller.setFilter(filter);
                 Window window = new Window(filter);
                 Clock clock = new Clock(window);
                 filter.setUI(window);
                 filter.setController(controller);
                 window.setVisible(true);
+                controller.loadPlugins(args);
             }
         });
     }

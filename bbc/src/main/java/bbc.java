@@ -8,67 +8,94 @@ public class bbc extends NewsPlugin
     private String endMatch = "</h3>";
     private StringBuilder rawHTML;
     private boolean interrupted;
-    // private HeadlineFactory fact;
     private String url = "http://www.bbc.com/news";
+
+    /**
+     * Run method for runnable task
+     */
     @Override
     public void run() throws IllegalArgumentException
     {
-        // List<Headline> headlines = new LinkedList<>();
         try
         {
+            // Update status of running plugin
             super.running(this);
             this.interrupted = true;
+
+            // Retrieve HTML from website
             this.rawHTML = super.downloadHTML();
 
+            // Retrieve the current time
             long time = new Date().getTime();
             SimpleDateFormat format = new SimpleDateFormat("YY-MM-dd hh:mma");
 
-            // System.out.println("CURRENT DATE TIME" + new Date().toString());
-            // System.out.println("CURRENT TIME" + format.format(new Date(tempTime)));
-
+            // Parse HTML to retrieve headlines, in HTML
             List<String> hTags = parse();
 
-            // int hash = this.retrieveURL().hashCode();
+            // Iterate through all HTML tags with potential headlines
             for(String tag : hTags)
             {
-                // Invoke super method to send each headline created to the controller
+                // Create headline from tag
                 Headline temp = createHeadline(tag, time);
+                // Ensure a valid headline was created
                 if( temp != null )
                 {
+                    // Invoke super method to send each headline created to the controller
                     super.sendHeadline(temp);
                 }
             }
             this.interrupted = false;
-            super.finished(this);
-            
 
+            // Update status to finished
+            super.finished(this);
         }
         catch(Exception e)
         {
             throw new IllegalArgumentException("Unable to create arstechnica headline", e);
         }
-        
-
     }
 
+    /**
+     * Parse the HTML to create a headline 
+     */
     public Headline createHeadline(String headlineTag, long time)
     {
-        Headline headline;
-        // String matcher;
+        Headline headline = null;
         String startMatch = ">";
         String urlEndMatch ="\">";
-        // matcher = this.pluginKeys.get(hash);
 
-        if( headlineTag.contains("</div>"))
-        {
-            return null;
-        }
+        // Check the headline tag does not contain css
+        // if( headlineTag.contains("</div>"))
+        // {
+        //     return null;
+        // }
         StringBuilder head = new StringBuilder(headlineTag);
+
+        // Remove the URL from the sequence
         int urlIdx = head.indexOf(startMatch);
-        
         head.delete(0, urlIdx + startMatch.length());
 
+        // Remove extra tags, specific to the plugin
+        head = removeExtraTags(head);
 
+        // Retrieve the headline
+        int headEndIdx = head.indexOf("</h3>");
+        String headlineText = head.substring(0, headEndIdx);
+
+        // Last check to ensure a false positive headline isn't created
+        if( !headlineText.contains("<") )
+        {
+            headlineText = headlineText.trim();
+            headline = new Headline(headlineText, time, this.url);
+        }
+        return headline;
+    }
+
+    /**
+     * Remove the extra tags within the raw headline string
+     */
+    public StringBuilder removeExtraTags(StringBuilder head)
+    {   
         // Replace &#x27; with single quote
         String quote = "&#x27;";
         while( head.indexOf(quote) != -1 )
@@ -77,14 +104,7 @@ public class bbc extends NewsPlugin
             head.replace(idx, idx+quote.length(), "'");
         }
 
-
-        int headEndIdx = head.indexOf("</h3>");
-        String headlineText = head.substring(0, headEndIdx);
-        // System.out.println("HEADLINE: " + headlineText);
-
-        headline = new Headline(headlineText, time, this.url.hashCode(), this.url);
-
-        return headline;
+        return head;
     }
 
     public boolean interrupted() 
@@ -92,25 +112,35 @@ public class bbc extends NewsPlugin
         return this.interrupted;
     }
 
+    /**
+     * Parse the raw HTML to find the potential headlines 
+     */
     public List<String> parse()
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
         int endIdx = 0; 
 
+        // Look for all tags that have HTML tags for the news source headline
         while(startIdx != -1 && endIdx != -1)
         {
+            // Find start of the heading tag
             startIdx = this.rawHTML.indexOf(this.match);
             if (startIdx != -1)
             {    
-                this.rawHTML.delete(0, startIdx); // Trim start and discard
+                // Trim start and discard
+                this.rawHTML.delete(0, startIdx); 
             }
 
+            // Find end of the heading tag
             endIdx = this.rawHTML.indexOf(this.endMatch);
             if(endIdx != -1)
             {            
+                // Retrieve headline tag from sequence
                 String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
-                this.rawHTML.delete(0, endIdx+5); //stop sequence.length()
+
+                // Delete from the sequence
+                this.rawHTML.delete(0, endIdx+this.endMatch.length()); 
                 headlineTags.add(retrieved);
             }
         }
@@ -118,11 +148,14 @@ public class bbc extends NewsPlugin
         return headlineTags;
     }
 
-    public void update()
-    {
-        System.out.println("BBC updating: " + super.getFreq());
-    }
+    // public void update()
+    // {
+    //     System.out.println("BBC updating: " + super.getFreq());
+    // }
 
+    /**
+     * Set the update frequency for the plugin
+     */
     public void setFrequency(int updateFrequency)
     {
         super.setFrequency(updateFrequency);
@@ -133,15 +166,18 @@ public class bbc extends NewsPlugin
     //     this.fact = fact;
     // }
 
+    /**
+     * Retrieve the plugin's URL source
+     */
     public String retrieveURL()
     {
         return this.url;
     }
     
-    public String getKey()
-    {
-        return this.match;
-    }
+    // public String getKey()
+    // {
+    //     return this.match;
+    // }
     
     
 }

@@ -1,69 +1,86 @@
-// import javax.swing.SwingUtilities;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
+
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 
 public class NewsController
 {
-    private Map<String, NewsPlugin> plugins;
-    private ExecutorService exService;
-    private ExecutorService exScheduled;
-    private NewsFilter filter;
-    
-    private Map<String, Future<?>> scheduledFutures;
-    private Map<String, Future<?>> updateFutures;
-    
-    private final String pluginPath = "/build/classes/main/";
-    private final int NUM_THREADS = 4;
+    private static Logger theLogger =
+    Logger.getLogger(NewsController.class.getName());
 
-    public NewsController(String[] pluginLocations)
+    private Map<String, NewsPlugin> plugins; // Map of all the plugins loaded from the command line
+    private ExecutorService exService;  // Executor service for updates to run
+    private ExecutorService exScheduled; // Executor service for periodic updates to run
+    private NewsFilter filter; // Reference to the NewsFilter
+    
+    // Map of each scheduled plugin's future, that is created upon submission to the respective executor service
+    private Map<String, Future<?>> scheduledFutures; 
+    // Map of each update plugin's future, that is created upon submission to the respective executor service
+    private Map<String, Future<?>> updateFutures;
+
+    // Constants 
+    private final String pluginPath = "/build/classes/main/";
+    private final int NUM_THREADS = 13;
+
+    /**
+     * Default constructor for the NewsController
+     */
+    public NewsController()
     {
-        PluginLoader loader = new PluginLoader();
+        // Instantiate class fields
         this.plugins = new HashMap<>();
         this.scheduledFutures = new HashMap<>();
         this.updateFutures = new HashMap<>();
-
         this.plugins.values().stream()
                              .forEach( x -> {
                                  this.scheduledFutures.put(x.retrieveURL(), null);
                                  this.updateFutures.put(x.retrieveURL(), null);
                                 });
+        theLogger.info("NewsController Constructed");
+    }
 
-        // Add each plugin to a map
+    /** 
+     *  Load the plugins at runtime for the news sources to be retrieved from
+     */
+    public void loadPlugins(String[] pluginLocations)
+    {
+        PluginLoader loader = new PluginLoader();
+        // Load plugins from the command line and store them in the appropriate map
         for(String pluginName : pluginLocations)
         {
             try
-            {
+            {   
+                // Append the necessary path to the plugin.
                 pluginName = pluginName + this.pluginPath + pluginName + ".class";
                 NewsPlugin plugin = loader.loadPlugin(pluginName);
                 plugin.setFrequency(4);
                 plugin.setController(this);
+                // Insert instantiated plugin into map
                 this.plugins.put(plugin.retrieveURL(), plugin);
             }
             catch(ClassNotFoundException e)
-            {}
+            {
+                this.alert(e.getMessage());
+            }
         }
 
         // Create executor service for scheduled and update threads
         this.exScheduled = Executors.newScheduledThreadPool(NUM_THREADS);
         this.exService = Executors.newFixedThreadPool(NUM_THREADS);
-System.out.println("SUBMITTING " + NUM_THREADS);
+
         // Schedule each plugin and keep each Future in a map
-        this.plugins.values().stream()
-                             .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
-                                        ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, x.getFreq()*60, x.getFreq()*60 ,TimeUnit.SECONDS)) );
+        scheduleUpdates();
     }
 
-    public void setFilter(NewsFilter filter)
-    {
-        this.filter = filter;
-    }
-
+    /** 
+     * Schedule all plugins to run simultaneously, if they are not already running.
+     */
     public void updateAll()
     {
-System.out.println("UPDATE ALL REQUEST RECEIVED");
-
         this.plugins.keySet().stream()
                              .forEach( x -> {
                                  // If scheduled update is not running
@@ -72,6 +89,7 @@ System.out.println("UPDATE ALL REQUEST RECEIVED");
                                      // If forced update is also not running or null
                                      if( this.updateFutures.get(x) == null || this.updateFutures.get(x).isDone() )
                                      {
+                                        System.out.println("\n\n\n            UPDATE RUNNING: " + x );
                                          // Submit for execution
                                          this.updateFutures.put(x, this.exService.submit(this.plugins.get(x)));
                                          System.out.println("SUBMITTING: " + x);
@@ -80,65 +98,116 @@ System.out.println("UPDATE ALL REQUEST RECEIVED");
                              });
     }
 
+    /** 
+     * Cancel all active downloads. 
+     */
     public void cancelDownloads()
-    {
+    {   
+        // Cancel all running plugins
         this.plugins.keySet().stream()
                              .forEach( x -> {
                                  // If scheduled update is running
                                  if( !this.scheduledFutures.get(x).isDone() || !this.scheduledFutures.get(x).isCancelled() )
-                                 {
-                                    System.out.println("CHECKING SCHEDULED FOR CANCEL: " + x);    
+                                 { 
                                     this.scheduledFutures.get(x).cancel(true); 
                                  }  
-                                 
                                  // If forced update is also running or null
                                  if( this.updateFutures.get(x) != null )
                                  {
-                                     System.out.println("CHECKING UPDATE FOR CANCEL: " + x);
-                                     // Submit for execution
-                                     if(!this.updateFutures.get(x).isDone())
-                                     {
+                                     // Submit for execution if 
+                                    if(!this.updateFutures.get(x).isDone())
+                                    {
                                          this.updateFutures.get(x).cancel(true);
                                     }
                                  }
                              });
+
+        // Resubmit all periodic update plugins 
         resubmit();
     }
 
+    /** 
+     * Create a new thread pool for periodic updates and resubmit all period update plugins
+     */
     public void resubmit()
     {
-        System.out.println("RESCHEDULING PLUGINS");
         // If the scheduled executor is still running, shut it down
         if(!this.exScheduled.isShutdown())
         {
             this.exScheduled.shutdownNow();
         }
-        
+
+        // Clear all Futures for the previously scheduled plugins
         this.scheduledFutures.clear();
+
+        // Create a new thread pool
         this.exScheduled = Executors.newScheduledThreadPool(NUM_THREADS);        
+
+        // Schedule each periodic update plugin and keep each Future in a map
+        scheduleUpdates();
+    }
+
+    /**
+     * Schedule update plugin task
+     */
+    public void scheduleUpdates()
+    {   
         // Schedule each plugin and keep each Future in a map
+        // Periodic updates are wrapped in a lambda, to check there is not already a forced update running
         this.plugins.values().stream()
                              .forEach( x -> this.scheduledFutures.put(x.retrieveURL(), 
-                                     ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate(x, x.getFreq()*60, x.getFreq()*60 ,TimeUnit.SECONDS)) );
-
-
-
+                                     ((ScheduledExecutorService)(this.exScheduled)).scheduleAtFixedRate( () -> {
+                                         // Run periodic update for plugin, if not currently downloading
+                                         if( updateFutures.get(x.retrieveURL()) == null ||  
+                                             updateFutures.get(x.retrieveURL()).isDone() )
+                                         {
+                                             x.run(); 
+                                         }
+                                     }, x.getFreq()*1, x.getFreq()*3 ,TimeUnit.SECONDS)) );
     }
+
+    
+
+    /**
+     * Update the NewsFilter with the currently running plugin
+     */
     public void running(NewsPlugin running)
     {
         // Let filter know which plugin is running
         this.filter.running(running.retrieveURL()); 
     }
-    
+
+    /**
+     * Update the NewsFilter with the a plugin that has finished running
+     */
     public void finishedRunning(NewsPlugin finRunning)
     {
         // Let filter know which plugin is finished
         this.filter.finished(finRunning.retrieveURL()); 
     }
 
+    /**
+     * Send a newly created headline to the NewsFilter
+     */
     public void submitHeadline(Headline headline)
     {
         this.filter.addHeadline(headline);
+    }
+
+    /**
+     * Notify the NewsFilter of any alerts that need to be sent to the UI
+     */
+    public void alert(String msg)
+    {
+        this.filter.alert(msg);
+    }
+
+    /**
+     *  Add a reference to the NewsFilter in the controller.
+     */
+    public void setFilter(NewsFilter filter)
+    {
+        this.filter = filter;
     }
 }
 

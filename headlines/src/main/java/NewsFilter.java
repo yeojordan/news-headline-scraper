@@ -4,17 +4,23 @@ import java.util.*;
 
 public class NewsFilter
 {
-    private LinkedBlockingQueue<Headline> queue;
+    private LinkedBlockingQueue<Headline> queue; // Blocking queue of all the headlines 
+    // Map of all headlines contained in the user interface
     private Map<String, Map<String, Headline>> uiContents; // Key = URL, Value = Map [Key = Headline (String), Value = Headline (Object)] 
-    private Map<String, Map<String, Headline>> retrieved;
-    private List<String> running;
-    private Object monitor = new Object();
-    private Window ui;
-    private String finished;
-    private Thread filter;
-    private boolean cancelled;
-    private NewsController controller;
+    // Map of all the headlines retrieved from the blocking queue. Updated as a plugin finishes
+    private Map<String, Map<String, Headline>> retrieved; // 
+    private List<String> running;           // List of all the currently running plugins
+    private Object monitor = new Object();  // Monitor to synchronize on running plugins
+    private Object cancelledMonitor = new Object(); // Monitor to synchronize on cancelled status
+    private Window ui;                      // User interface
+    private String finished;                // The name of the plugin that has just finished
+    private Thread filter;                  // The thread for filtering
+    private boolean cancelled;              // Let's the filter know if cancel has been called by the user 
+    private NewsController controller;      // NewsController
 
+    /**
+     * Default constructor for the NewsFilter
+     */
     public NewsFilter()
     {
         this.queue = new LinkedBlockingQueue<>();
@@ -22,53 +28,65 @@ public class NewsFilter
         this.retrieved = new HashMap<>();
         this.running = new LinkedList<>();
         this.cancelled = false;
-        filter = new Thread(()->filter()); 
+
+        // Start the filter task
+        filter = new Thread( ()-> filter() ); 
         filter.start();
     }
 
+    /**
+     * Add a headline to the blocking queue
+     */
     public void addHeadline(Headline headline)
     {
         try
         {
-            this.queue.put(headline);
+            synchronized(this.monitor)
+            {
+                this.queue.put(headline);
+            }
         }
         catch(InterruptedException e)
         {
-            System.out.println("Interrupted adding to filter");
+            // System.out.println("Interrupted adding to filter");
         }
     }
 
+    /**
+     * Peform the filtering process to determine the headlines to be 
+     * added and removed for each news source that finishes
+     */
     public void filter()
     {
         Map<String,Headline> currHeadlineMap;
         try
         {
+            // Run while the thread has not been interrupted 
             while( !Thread.currentThread().isInterrupted() )
             {
                 synchronized(this.monitor)
                 {
-                    System.out.println("WAITING");
                     this.monitor.wait(); // Wait for a plugin to finish
-System.out.println("FINISHED WAITING");
                     Headline retrievedHeadline;
                 
-                    // while( !retrievedHeadline.getHeadline().contains("POISON") ) // While a POISON object has not been retrieved
                     while(this.queue.size() > 0) // While there are things to take
                     {
-                        System.out.println("TAKING FROM QUEUE");
                         retrievedHeadline = this.queue.take(); //Take from the blocking queue
-                        System.out.println(retrievedHeadline.toString());
                         currHeadlineMap = this.retrieved.get(retrievedHeadline.getSource()); // Retrieve map associated with headline source
+                        // Instantiate a new map if one does not exist yet
                         if ( currHeadlineMap == null)
                         {
                             currHeadlineMap = new HashMap<>();
                         }
-                        currHeadlineMap.put(retrievedHeadline.getHeadline(), retrievedHeadline); // Add to source map 
-                        this.retrieved.put(retrievedHeadline.getSource(), currHeadlineMap); // Put back in retrieved map
+                        // Add headline the map for that news plugin
+                        currHeadlineMap.put(retrievedHeadline.getHeadline(), retrievedHeadline); 
+
+                        // Insert the map for a plugin into the larger map of all headlines
+                        this.retrieved.put(retrievedHeadline.getSource(), currHeadlineMap); 
                     }
-                    System.out.println("FINISHED TAKING");
+                    
                     // Retrieve map associated with the plugin that has just finished
-                    // Leaving all other headlines from other sources in the 
+                    // Leaving all other headlines from other sources in the retrieved map
                     currHeadlineMap = this.retrieved.get(finished);
                     
                     // Retrieve updated list
@@ -76,19 +94,22 @@ System.out.println("FINISHED WAITING");
 
                     // Clear the headline map for a plugin
                     currHeadlineMap = new HashMap<>();
-
-                    // Send updates to UI
-                    System.out.println("SENDING UPDATES");
                     
-                    if( !cancelled )
+                    // If the user has not signalled cancel prior to the filter finishing its task
+                    synchronized( this.cancelledMonitor )
                     {
-                        this.ui.finishedTasks(finished + " is running");
-                        this.ui.update(update);
+                        if( !cancelled )
+                        {   
+                            // Send the updated headline list to the UI
+                            this.ui.finishedTasks(finished + " is running");
+                            this.ui.update(update);
+                        }
+                        else 
+                        {
+                            clear();
+                        }
                     }
-                    else
-                    {
-                        clear();
-                    }
+                    
                 }
             }
         }
@@ -101,22 +122,32 @@ System.out.println("FINISHED WAITING");
         }
     }
 
+    /**
+     * Clear all running tasks and headlines retrieved but not sent to the UI
+     */
     public void clear()
     {
-        // Clear all running tasks
-        for( String running: this.running)
+        // Clear headlines retrieved
+        for( String running : this.running)
         {
             // Clear all retrieved headlines
             this.retrieved.put(running, new HashMap<>());
             this.ui.finishedTasks(running + " is running");
         }
-
+        // Clear list of running tasks
         this.running.clear();
 
         // Reset cancelled flag
-        this.cancelled = false;
+        // this.cancelled = false;
+        synchronized(this.cancelledMonitor)
+        {
+            this.cancelled = false;
+        }
     }
-    
+
+    /**
+     * Determine the latest version of headline from a finished source
+     */
     public List<Headline> updatedList(Map<String, Headline> updateMap) throws InterruptedException
     {
         Map<String, Headline> uiSourceMap = this.uiContents.get(finished);
@@ -127,19 +158,21 @@ System.out.println("FINISHED WAITING");
         /*updateMap.keySet().stream()
                           .filter(x -> uiSourceMap.containsKey(x))
                           .forEach(x -> updated.add(uiSourceMap.get(x))); */
-                          if(updateMap != null){
-        for( String key : updateMap.keySet() )
+        if(updateMap != null)
         {
-            if( uiSourceMap.containsKey(key) )
+            for( String key : updateMap.keySet() )
             {
-                updated.add( uiSourceMap.get(key));
-            }
-            else
-            {
-                updated.add( updateMap.get(key));
+                if( uiSourceMap.containsKey(key) )
+                {
+                    updated.add( uiSourceMap.get(key));
+                }
+                else
+                {
+                    updated.add( updateMap.get(key));
+                }
             }
         }
-    }
+        
         // Update the uiMap
         uiSourceMap.clear();
         for(Headline head : updated)
@@ -150,7 +183,6 @@ System.out.println("FINISHED WAITING");
         this.uiContents.put(finished, uiSourceMap);
 
 
-        System.out.println("CAPACITY AFTER FILTER: " + updated.size());
         // If new headline does not exist in original, add to list
         /*uiSourceMap.keySet().stream() 
                             .filter(x -> !updateMap.containsKey(x))
@@ -173,57 +205,81 @@ System.out.println("FINISHED WAITING");
                       .sorted((x,y) -> (int)(x.getTime() - y.getTime()))
                       .forEach(x -> updated.add(x));
 
-        System.out.println("CAPACITY AFTER SECOND FILTER: " + updated.size());
         return updated;
     }
 
-
+    /**
+     * Update the user interface with the currently running plugins
+     */
     public void running(String plugin)
     {
         synchronized(this.monitor)
         {
-            System.out.println("ADDING TO RUNNING LIST (NF): " + plugin);
             this.running.add(plugin);
             this.uiContents.putIfAbsent(plugin, new HashMap<>());
             this.ui.runningTasks(plugin + " is running");    
-            System.out.println("SENT RUNNING");
         }
-        
-        System.out.println("SENT RUNNING after sync");
     }
 
+    /**
+     * Update the user interface with the currently finished plugins
+     */
     public void finished(String plugin)
     {
         synchronized(this.monitor)
         {
             if ( this.running.remove(plugin) )
             {   
-                System.out.println("REMOVING FROM RUNNING LIST (NF): " + plugin);
                 this.finished = plugin; // Updated shared resource
             }
             this.monitor.notify(); // Notify filter to start
-            System.out.println("NOTIFYING");
         }
     }
 
+    /**
+     * Set the filter's reference to the user interface
+     */
     public void setUI(Window ui)
     {
         this.ui = ui;
     }
 
+    /**
+     * Set the filter's reference to the controller
+     */
     public void setController(NewsController controller)
     {
         this.controller = controller;
     }
-
+    
+    /**
+     * Notify the controller that a request to download from all sources occurred
+     */
     public void update()
     {
         this.controller.updateAll();
     }
 
+    /**
+     * Update the cancelled field 
+     */
     public void cancel()
     {
         this.controller.cancelDownloads();
-        this.cancelled = true;
+
+        // Synchronised to avoid a race condition
+        synchronized(this.cancelledMonitor)
+        {
+            // Set the cancelled field to true
+            this.cancelled = true;
+        }
+    }
+
+    /**
+     *  Send an alert to the user interface
+     */
+    public void alert(String msg)
+    {
+        this.ui.alert(msg);
     }
 }
