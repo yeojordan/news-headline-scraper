@@ -36,7 +36,7 @@ public class nytimes extends NewsPlugin
             {
                 // Create headline from tag
                 Headline temp = createHeadline(tag, time);
-                
+
                 // Ensure a valid headline was created
                 if( temp != null )
                 {
@@ -132,9 +132,9 @@ public class nytimes extends NewsPlugin
             removeExtraTags(head);
             int headEndIdx = head.indexOf("</a>");
             headlineText = head.substring(0, headEndIdx);
-
+            
             // Last check to ensure a false positive headline isn't created
-            if(!headlineText.contains("<"))
+            if(!headlineText.contains("<") && headlineText.length() > 0)
             {
                 headlineText = headlineText.trim();
                 headline = new Headline(headlineText, time, this.url);

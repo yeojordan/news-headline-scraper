@@ -1,6 +1,7 @@
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class NewsFilter
 {
@@ -18,6 +19,9 @@ public class NewsFilter
     private boolean cancelled;              // Let's the filter know if cancel has been called by the user 
     private NewsController controller;      // NewsController
 
+    // Logger 
+    private static Logger theLogger = Logger.getLogger(NewsFilter.class.getName());
+
     /**
      * Default constructor for the NewsFilter
      */
@@ -32,6 +36,7 @@ public class NewsFilter
         // Start the filter task
         filter = new Thread( ()-> filter() ); 
         filter.start();
+        theLogger.info("NewsFilter Constructed and filter started");
     }
 
     /**
@@ -48,7 +53,7 @@ public class NewsFilter
         }
         catch(InterruptedException e)
         {
-            // System.out.println("Interrupted adding to filter");
+            theLogger.warning("Unable to add headline to queue:\n" + headline.toString());
         }
     }
 
@@ -103,14 +108,17 @@ public class NewsFilter
                             // Send the updated headline list to the UI
                             this.ui.finishedTasks(finished + " is running");
                             this.ui.update(update);
+                            theLogger.info("Update sent. Plugin:" + finished);
                         }
                         else 
                         {
                             clear();
+                            theLogger.info("Update cancelled");
                         }
                     }
                     
                 }
+                theLogger.info("Filter complete. Plugin:" + finished);
             }
         }
         catch(InterruptedException e)
@@ -142,6 +150,8 @@ public class NewsFilter
         {
             this.cancelled = false;
         }
+
+        theLogger.info("Clearing filter due to user cancel");
     }
 
     /**
@@ -150,8 +160,8 @@ public class NewsFilter
     public List<Headline> updatedList(Map<String, Headline> updateMap) throws InterruptedException
     {
         Map<String, Headline> uiSourceMap = this.uiContents.get(finished);
-        List<Headline> updated = new LinkedList<>();
-        
+        List<Headline> updated;// = new LinkedList<>();
+        final List<Headline> temp = new LinkedList<>();
         if (updateMap != null )
         {
             // Compare to UI contents
@@ -160,15 +170,15 @@ public class NewsFilter
                               .forEach( (x) -> {
                                   if( uiSourceMap.containsKey(x) )
                                   {
-                                      updated.add( uiSourceMap.get(x) );
+                                      temp.add( uiSourceMap.get(x) );
                                   }
                                   else
                                   {
-                                      updated.add( updateMap.get(x) );
+                                      temp.add( updateMap.get(x) );
                                   }
                               });
         }                          
-        
+        updated = new LinkedList<>(temp);
         // Update the uiMap
         uiSourceMap.clear();
 
@@ -182,15 +192,17 @@ public class NewsFilter
         updated.clear();
 
         // Create a list from the entire UIMap
-        this.uiContents.values()
-                       .stream()
-                       .forEach(x -> x.values()
-                       .stream()
-                       .collect(Collectors.toList())
-                       .stream()
-                       .sorted(Comparator.comparing(Headline::getTime))//(y,z) -> (int)(y.getTime() - z.getTime()))
-                       .forEach( y -> updated.add(y)));
+        // The following method(s) create a stream of all the maps within the uiContents
+        // Then utilises flatMap() to put all the collections into a single stream
+        // Then sortes the Headlines based on download time
+        // Finally the sorted stream is added to a list               
+        updated = this.uiContents.values()
+                                 .stream() 
+                                 .flatMap(x -> x.values().stream())    
+                                 .sorted(Comparator.comparing(Headline::getTime))
+                                 .collect(Collectors.toCollection(LinkedList::new));
 
+        theLogger.info("Updated headlines list created");
         return updated;
     }
 
@@ -228,6 +240,7 @@ public class NewsFilter
     public void setUI(Window ui)
     {
         this.ui = ui;
+        theLogger.info("Set reference to Window (UI)");
     }
 
     /**
@@ -236,6 +249,7 @@ public class NewsFilter
     public void setController(NewsController controller)
     {
         this.controller = controller;
+        theLogger.info("Set reference to NewsController");
     }
     
     /**
@@ -244,6 +258,7 @@ public class NewsFilter
     public void update()
     {
         this.controller.updateAll();
+        theLogger.info("Update request recieved from UI");
     }
 
     /**
@@ -259,6 +274,7 @@ public class NewsFilter
             // Set the cancelled field to true
             this.cancelled = true;
         }
+        theLogger.info("Cancel request recieved from UI");
     }
 
     /**
@@ -267,5 +283,6 @@ public class NewsFilter
     public void alert(String msg)
     {
         this.ui.alert(msg);
+        theLogger.info("Alert sent to UI");
     }
 }

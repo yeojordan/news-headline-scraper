@@ -1,17 +1,11 @@
 import java.util.*;
 import java.util.concurrent.*;
-
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.LogManager;
+
 
 
 public class NewsController
 {
-    private static Logger theLogger =
-    Logger.getLogger(NewsController.class.getName());
-
     private Map<String, NewsPlugin> plugins; // Map of all the plugins loaded from the command line
     private ExecutorService exService;  // Executor service for updates to run
     private ExecutorService exScheduled; // Executor service for periodic updates to run
@@ -25,6 +19,9 @@ public class NewsController
     // Constants 
     private final String pluginPath = "/build/classes/main/";
     private final int NUM_THREADS = 13;
+    
+    // Logger 
+    private static Logger theLogger = Logger.getLogger(NewsController.class.getName());
 
     /**
      * Default constructor for the NewsController
@@ -64,6 +61,7 @@ public class NewsController
             }
             catch(ClassNotFoundException e)
             {
+                theLogger.warning(e.getMessage());
                 this.alert(e.getMessage());
             }    
         }
@@ -222,7 +220,7 @@ public class NewsController
     public void setFilter(NewsFilter filter)
     {
         this.filter = filter;
-        theLogger.info("Set reference to filter");
+        theLogger.info("Set reference to NewsFilter");
     }
 }
 

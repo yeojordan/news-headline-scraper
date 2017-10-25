@@ -27,6 +27,7 @@ public class arstechnica extends NewsPlugin
 
             // Retrieve the current time
             Date time = new Date();
+            System.out.println(this.url + "     " + time.toString());
             // Parse HTML to retrieve headlines, in HTML
             List<String> hTags = parse();
 
@@ -35,7 +36,7 @@ public class arstechnica extends NewsPlugin
             {
                 // Create headline from tag
                 Headline temp = createHeadline(tag, time);
-                
+
                 // Ensure a valid headline was created
                 if( temp != null )
                 {
@@ -78,7 +79,7 @@ public class arstechnica extends NewsPlugin
         String headlineText = head.substring(0, headEndIdx);
 
         // Last check to ensure a false positive headline isn't created
-        if( !headlineText.contains("<") )
+        if(!headlineText.contains("<") && headlineText.length() > 0)
         {
             headlineText = headlineText.trim();
             headline = new Headline(headlineText, time, this.url);
