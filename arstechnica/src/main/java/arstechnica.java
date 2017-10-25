@@ -1,3 +1,4 @@
+import model.*;
 import java.util.*;
 import java.text.*;
 import java.io.*;

@@ -1,3 +1,4 @@
+import model.*;
 import java.util.*;
 import java.text.*;
 
@@ -218,3 +219,4 @@ public class nytimes extends NewsPlugin
         return this.interrupted;
     }
 }
+
