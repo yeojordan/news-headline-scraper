@@ -1,7 +1,7 @@
 import java.util.*;
 import java.text.*;
 
-// public class BBCPlugin extends NewsPlugin
+
 public class bbc extends NewsPlugin
 {
     private String match = "<h3 class=\"gs-c-promo-heading__title";
@@ -36,7 +36,7 @@ public class bbc extends NewsPlugin
             {
                 // Create headline from tag
                 Headline temp = createHeadline(tag, time);
-                
+
                 // Ensure a valid headline was created
                 if( temp != null )
                 {
@@ -62,13 +62,7 @@ public class bbc extends NewsPlugin
     {
         Headline headline = null;
         String startMatch = ">";
-        String urlEndMatch ="\">";
 
-        // Check the headline tag does not contain css
-        // if( headlineTag.contains("</div>"))
-        // {
-        //     return null;
-        // }
         StringBuilder head = new StringBuilder(headlineTag);
 
         // Remove the URL from the sequence
@@ -83,7 +77,7 @@ public class bbc extends NewsPlugin
         String headlineText = head.substring(0, headEndIdx);
 
         // Last check to ensure a false positive headline isn't created
-        if( !headlineText.contains("<") )
+        if(!headlineText.contains("<") && headlineText.length() > 0)
         {
             headlineText = headlineText.trim();
             headline = new Headline(headlineText, time, this.url);
@@ -104,6 +98,13 @@ public class bbc extends NewsPlugin
             head.replace(idx, idx+quote.length(), "'");
         }
 
+        // Replace &amp; with ampersand
+        String amp = "&amp;";
+        while( head.indexOf(amp) != -1 )
+        {
+            int idx = head.indexOf(amp);
+            head.replace(idx, idx+amp.length(), "&");
+        }
         return head;
     }
 
