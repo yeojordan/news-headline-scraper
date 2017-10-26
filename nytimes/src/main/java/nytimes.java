@@ -15,52 +15,44 @@ public class nytimes extends NewsPlugin
      * Run method for runnable task
      */
     @Override
-    public void run() throws IllegalArgumentException
+    public void run()
     {
-        try
+        // Update status of running plugin
+        super.running(this);
+        this.interrupted = true;
+
+        // Retrieve HTML from website
+        this.rawHTML = super.downloadHTML();
+
+        // Retrieve the current time
+        Date time = new Date();
+
+        // Parse HTML to retrieve headlines, in HTML
+        List<String> hTags = parse();
+
+        // Iterate through all HTML tags with potential headlines
+        for(String tag : hTags)
         {
-            // Update status of running plugin
-            super.running(this);
-            this.interrupted = true;
+            // Create headline from tag
+            Headline temp = createHeadline(tag, time);
 
-            // Retrieve HTML from website
-            this.rawHTML = super.downloadHTML();
-
-            // Retrieve the current time
-            Date time = new Date();
-
-            // Parse HTML to retrieve headlines, in HTML
-            List<String> hTags = parse();
-
-            // Iterate through all HTML tags with potential headlines
-            for(String tag : hTags)
+            // Ensure a valid headline was created
+            if( temp != null )
             {
-                // Create headline from tag
-                Headline temp = createHeadline(tag, time);
-
-                // Ensure a valid headline was created
-                if( temp != null )
-                {
-                    // Invoke super method to send each headline created to the controller
-                    super.sendHeadline(temp);
-                }
+                // Invoke super method to send each headline created to the controller
+                super.sendHeadline(temp);
             }
-            this.interrupted = false;
-
-            // Update status to finished
-            super.finished(this);
         }
-        catch(Exception e)
-        {
-            throw new IllegalArgumentException("Unable to create nytimes headline", e);
-        }
+        this.interrupted = false;
 
+        // Update status to finished
+        super.finished(this);
     }
 
     /**
      * Parse the raw HTML to find the potential headlines
      */
-    public List<String> parse()
+    public List<String> parse() 
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;

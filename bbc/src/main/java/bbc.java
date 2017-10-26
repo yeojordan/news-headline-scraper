@@ -15,45 +15,38 @@ public class bbc extends NewsPlugin
      * Run method for runnable task
      */
     @Override
-    public void run() throws IllegalArgumentException
+    public void run()
     {
-        try
+        // Update status of running plugin
+        super.running(this);
+        this.interrupted = true;
+
+        // Retrieve HTML from website
+        this.rawHTML = super.downloadHTML();
+
+        // Retrieve the current time
+        Date time = new Date();
+
+        // Parse HTML to retrieve headlines, in HTML
+        List<String> hTags = parse();
+
+        // Iterate through all HTML tags with potential headlines
+        for(String tag : hTags)
         {
-            // Update status of running plugin
-            super.running(this);
-            this.interrupted = true;
+            // Create headline from tag
+            Headline temp = createHeadline(tag, time);
 
-            // Retrieve HTML from website
-            this.rawHTML = super.downloadHTML();
-
-            // Retrieve the current time
-            Date time = new Date();
-
-            // Parse HTML to retrieve headlines, in HTML
-            List<String> hTags = parse();
-
-            // Iterate through all HTML tags with potential headlines
-            for(String tag : hTags)
+            // Ensure a valid headline was created
+            if( temp != null )
             {
-                // Create headline from tag
-                Headline temp = createHeadline(tag, time);
-
-                // Ensure a valid headline was created
-                if( temp != null )
-                {
-                    // Invoke super method to send each headline created to the controller
-                    super.sendHeadline(temp);
-                }
+                // Invoke super method to send each headline created to the controller
+                super.sendHeadline(temp);
             }
-            this.interrupted = false;
+        }
+        this.interrupted = false;
 
-            // Update status to finished
-            super.finished(this);
-        }
-        catch(Exception e)
-        {
-            throw new IllegalArgumentException("Unable to create arstechnica headline", e);
-        }
+        // Update status to finished
+        super.finished(this);
     }
 
     /**
@@ -150,11 +143,6 @@ public class bbc extends NewsPlugin
         return headlineTags;
     }
 
-    // public void update()
-    // {
-    //     System.out.println("BBC updating: " + super.getFreq());
-    // }
-
     /**
      * Set the update frequency for the plugin
      */
@@ -163,11 +151,6 @@ public class bbc extends NewsPlugin
         super.setFrequency(updateFrequency);
     }
 
-    // public void setFactory(HeadlineFactory fact)
-    // {
-    //     this.fact = fact;
-    // }
-
     /**
      * Retrieve the plugin's URL source
      */
@@ -175,11 +158,4 @@ public class bbc extends NewsPlugin
     {
         return this.url;
     }
-
-    // public String getKey()
-    // {
-    //     return this.match;
-    // }
-
-
 }

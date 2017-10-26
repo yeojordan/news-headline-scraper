@@ -17,48 +17,42 @@ public class arstechnica extends NewsPlugin
     @Override
     public void run()
     {
-        try
+        // Update status of running plugin
+        super.running(this);
+        this.interrupted = true;
+
+        // Retrieve HTML from website
+        this.rawHTML = super.downloadHTML();
+
+        // Retrieve the current time
+        Date time = new Date();
+
+        // Parse HTML to retrieve headlines, in HTML
+        List<String> hTags = parse();
+
+        // Iterate through all HTML tags with potential headlines
+        for(String tag : hTags)
         {
-            // Update status of running plugin
-            super.running(this);
-            this.interrupted = true;
+            // Create headline from tag
+            Headline temp = createHeadline(tag, time);
 
-            // Retrieve HTML from website
-            this.rawHTML = super.downloadHTML();
-
-            // Retrieve the current time
-            Date time = new Date();
-
-            // Parse HTML to retrieve headlines, in HTML
-            List<String> hTags = parse();
-
-            // Iterate through all HTML tags with potential headlines
-            for(String tag : hTags)
+            // Ensure a valid headline was created
+            if( temp != null )
             {
-                // Create headline from tag
-                Headline temp = createHeadline(tag, time);
-
-                // Ensure a valid headline was created
-                if( temp != null )
-                {
-                    // Invoke super method to send each headline created to the controller
-                    super.sendHeadline(temp);
-                }
+                // Invoke super method to send each headline created to the controller
+                super.sendHeadline(temp);
             }
-            this.interrupted = false;
-
-            // Update status to finished
-            super.finished(this);
         }
-        catch(InterruptedException e)
-        {}
+        this.interrupted = false;
 
+        // Update status to finished
+        super.finished(this);
     }
 
     /**
      * Parse the HTML to create a headline
      */
-    public Headline createHeadline(String headlineTag, Date time) throws InterruptedException
+    public Headline createHeadline(String headlineTag, Date time)
     {
         Headline headline = null;
         String urlMatch = "<a href=\"";
@@ -118,7 +112,7 @@ public class arstechnica extends NewsPlugin
     /**
      * Parse the raw HTML to find the potential headlines
      */
-    public List<String> parse() throws InterruptedException
+    public List<String> parse()
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
@@ -151,11 +145,6 @@ public class arstechnica extends NewsPlugin
         return headlineTags;
     }
 
-    // public void update()
-    // {
-    //     System.out.println("Arstechnica updating: " + super.getFreq());
-    // }
-
     /**
      * Set the update frequency for the plugin
      */
@@ -171,9 +160,4 @@ public class arstechnica extends NewsPlugin
     {
         return "https://arstechnica.com";
     }
-
-    // public String getKey()
-    // {
-    //     return this.match;
-    // }
 }

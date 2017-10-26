@@ -23,6 +23,8 @@ public abstract class NewsPlugin implements Runnable
     // Abstract methods
     public abstract String retrieveURL();
     public abstract boolean interrupted();
+    public abstract List<String> parse();
+    public abstract Headline createHeadline(String headlineTag, Date time);
     
     /**
      * Set the reference to the controller
