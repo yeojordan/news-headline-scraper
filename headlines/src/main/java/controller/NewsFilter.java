@@ -10,19 +10,22 @@ import java.util.logging.Logger;
 
 public class NewsFilter
 {
-    private LinkedBlockingQueue<Headline> queue; // Blocking queue of all the headlines 
+    // Classfields
+    private LinkedBlockingQueue<Headline> queue;    // Blocking queue of all the headlines 
     // Map of all headlines contained in the user interface
     private Map<String, Map<String, Headline>> uiContents; // Key = URL, Value = Map [Key = Headline (String), Value = Headline (Object)] 
+   
     // Map of all the headlines retrieved from the blocking queue. Updated as a plugin finishes
-    private Map<String, Map<String, Headline>> retrieved; // 
-    private List<String> running;           // List of all the currently running plugins
-    private Object monitor = new Object();  // Monitor to synchronize on running plugins
+    private Map<String, Map<String, Headline>> retrieved; 
+    
+    private List<String> running;                   // List of all the currently running plugins
+    private Object monitor = new Object();          // Monitor to synchronize on running plugins
     private Object cancelledMonitor = new Object(); // Monitor to synchronize on cancelled status
-    private Window ui;                      // User interface
-    private String finished;                // The name of the plugin that has just finished
-    private Thread filter;                  // The thread for filtering
-    private boolean cancelled;              // Let's the filter know if cancel has been called by the user 
-    private NewsController controller;      // NewsController
+    private Window ui;                              // User interface
+    private String finished;                        // The name of the plugin that has just finished
+    private Thread filter;                          // The thread for filtering
+    private boolean cancelled;                      // Let's the filter know if cancel has been called by the user 
+    private NewsController controller;              // Reference to the NewsController
 
     // Logger 
     private static Logger theLogger = Logger.getLogger(NewsFilter.class.getName());
@@ -289,5 +292,17 @@ public class NewsFilter
     {
         this.ui.alert(msg);
         theLogger.info("Alert sent to UI");
+    }
+
+    /**
+     * Shutdown the filter
+     * This method is currently not utilised within the program
+     * Has been included for extensibility, to work with other shutdown related methods
+     * , should the need arise. 
+     */
+    public void shutdown()
+    {
+        this.filter.interrupt();
+        this.ui.shutdown();
     }
 }

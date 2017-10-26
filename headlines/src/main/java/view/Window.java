@@ -172,4 +172,14 @@ public class Window extends JFrame
             this.visible = false;
         });
     }
+
+    /**
+     * Shutdown the window
+     * This method is currently not utilised within the program
+     * Has been included for extensibility, to work with other shutdown related methods
+     */
+    public void shutdown()
+    {
+        this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
+    }
 }
