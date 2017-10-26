@@ -28,7 +28,7 @@ public class arstechnica extends NewsPlugin
 
             // Retrieve the current time
             Date time = new Date();
-            System.out.println(this.url + "     " + time.toString());
+
             // Parse HTML to retrieve headlines, in HTML
             List<String> hTags = parse();
 
@@ -56,7 +56,7 @@ public class arstechnica extends NewsPlugin
     }
 
     /**
-     * Parse the HTML to create a headline 
+     * Parse the HTML to create a headline
      */
     public Headline createHeadline(String headlineTag, Date time) throws InterruptedException
     {
@@ -72,7 +72,7 @@ public class arstechnica extends NewsPlugin
 
         // Isolate the URL if possible, and remove it from the string
         head.delete(0, urlIdx + urlMatch.length());
-        int endURLIdx = head.indexOf(urlEndMatch);        
+        int endURLIdx = head.indexOf(urlEndMatch);
         head.delete(0, endURLIdx+urlEndMatch.length());
 
         // Retrieve the headline
@@ -93,7 +93,7 @@ public class arstechnica extends NewsPlugin
      * Remove the extra tags within the raw headline string
      */
     public StringBuilder removeExtraTags(StringBuilder head)
-    {   
+    {
         // Replace <em> and </em> with single quotes
         String quote = "<em>";
         String endQuote = "</em>";
@@ -105,24 +105,24 @@ public class arstechnica extends NewsPlugin
             idx = head.indexOf(endQuote);
             head.replace(idx, idx+endQuote.length(), "'");
         }
-        
+
         return head;
     }
 
 
-    public boolean interrupted() 
+    public boolean interrupted()
     {
         return this.interrupted;
     }
 
     /**
-     * Parse the raw HTML to find the potential headlines 
+     * Parse the raw HTML to find the potential headlines
      */
     public List<String> parse() throws InterruptedException
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
-        int endIdx = 0; 
+        int endIdx = 0;
 
         // Look for all tags that have HTML tags for the news source headline
         while(startIdx != -1 && endIdx != -1)
@@ -130,24 +130,24 @@ public class arstechnica extends NewsPlugin
             // Find start of the heading tag
             startIdx = this.rawHTML.indexOf(this.match);
             if (startIdx != -1)
-            {    
+            {
                 // Trim start and discard
-                this.rawHTML.delete(0, startIdx); 
+                this.rawHTML.delete(0, startIdx);
             }
 
             // Find end of the heading tag
             endIdx = this.rawHTML.indexOf(this.endMatch);
             if(endIdx != -1)
-            {    
+            {
                 // Retrieve headline tag from sequence
                 String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
-                
+
                 // Delete from the sequence
-                this.rawHTML.delete(0, endIdx+this.endMatch.length()); 
+                this.rawHTML.delete(0, endIdx+this.endMatch.length());
                 headlineTags.add(retrieved);
             }
         }
-        
+
         return headlineTags;
     }
 
@@ -171,7 +171,7 @@ public class arstechnica extends NewsPlugin
     {
         return "https://arstechnica.com";
     }
-    
+
     // public String getKey()
     // {
     //     return this.match;

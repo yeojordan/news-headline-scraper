@@ -57,13 +57,13 @@ public class bbc extends NewsPlugin
     }
 
     /**
-     * Parse the HTML to create a headline 
+     * Parse the HTML to create a headline
      */
     public Headline createHeadline(String headlineTag, Date time)
     {
         Headline headline = null;
         String startMatch = ">";
-
+        
         StringBuilder head = new StringBuilder(headlineTag);
 
         // Remove the URL from the sequence
@@ -90,7 +90,7 @@ public class bbc extends NewsPlugin
      * Remove the extra tags within the raw headline string
      */
     public StringBuilder removeExtraTags(StringBuilder head)
-    {   
+    {
         // Replace &#x27; with single quote
         String quote = "&#x27;";
         while( head.indexOf(quote) != -1 )
@@ -109,19 +109,19 @@ public class bbc extends NewsPlugin
         return head;
     }
 
-    public boolean interrupted() 
+    public boolean interrupted()
     {
         return this.interrupted;
     }
 
     /**
-     * Parse the raw HTML to find the potential headlines 
+     * Parse the raw HTML to find the potential headlines
      */
     public List<String> parse()
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
-        int endIdx = 0; 
+        int endIdx = 0;
 
         // Look for all tags that have HTML tags for the news source headline
         while(startIdx != -1 && endIdx != -1)
@@ -129,24 +129,24 @@ public class bbc extends NewsPlugin
             // Find start of the heading tag
             startIdx = this.rawHTML.indexOf(this.match);
             if (startIdx != -1)
-            {    
+            {
                 // Trim start and discard
-                this.rawHTML.delete(0, startIdx); 
+                this.rawHTML.delete(0, startIdx);
             }
 
             // Find end of the heading tag
             endIdx = this.rawHTML.indexOf(this.endMatch);
             if(endIdx != -1)
-            {            
+            {
                 // Retrieve headline tag from sequence
                 String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
 
                 // Delete from the sequence
-                this.rawHTML.delete(0, endIdx+this.endMatch.length()); 
+                this.rawHTML.delete(0, endIdx+this.endMatch.length());
                 headlineTags.add(retrieved);
             }
         }
-        
+
         return headlineTags;
     }
 
@@ -175,11 +175,11 @@ public class bbc extends NewsPlugin
     {
         return this.url;
     }
-    
+
     // public String getKey()
     // {
     //     return this.match;
     // }
-    
-    
+
+
 }

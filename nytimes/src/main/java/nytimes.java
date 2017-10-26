@@ -54,33 +54,33 @@ public class nytimes extends NewsPlugin
         {
             throw new IllegalArgumentException("Unable to create nytimes headline", e);
         }
-        
+
     }
 
     /**
-     * Parse the raw HTML to find the potential headlines 
+     * Parse the raw HTML to find the potential headlines
      */
     public List<String> parse()
     {
         List<String> headlineTags = new LinkedList<>();
         int startIdx = 0;
-        int endIdx = 0; 
+        int endIdx = 0;
 
         // Look for all tags that have HTML tags for the news source headline
         while(startIdx != -1 && endIdx != -1)
-        {   
+        {
             // Find start of the heading tag
             startIdx = this.rawHTML.indexOf(this.match);
             if (startIdx != -1)
-            {       
+            {
                  // Trim start and discard
-                this.rawHTML.delete(0, startIdx); 
+                this.rawHTML.delete(0, startIdx);
             }
 
             // Find end of the heading tag
             endIdx = this.rawHTML.indexOf(this.endMatch);
             if(endIdx != -1)
-            {            
+            {
                 // Retrieve headline tag from sequence
                 String retrieved = this.rawHTML.substring(0, endIdx+this.endMatch.length());
 
@@ -94,14 +94,14 @@ public class nytimes extends NewsPlugin
     }
 
     /**
-     * Parse the HTML to create a headline 
+     * Parse the HTML to create a headline
      */
     public Headline createHeadline(String headlineTag, Date time)
     {
         Headline headline = null;
         String urlMatch = "<a href=\"";
         String urlEndMatch ="\">";
-
+        
         StringBuilder head = new StringBuilder(headlineTag);
         int urlIdx = head.indexOf(urlMatch);
 
@@ -118,22 +118,22 @@ public class nytimes extends NewsPlugin
             head.delete(start, start + extraToIgnore.length());
         }
 
-        // Check the headline has a URL 
+        // Check the headline has a URL
         String headlineText ="";
         if( headlineTag.contains(urlMatch) )
         {
             // Trim the start of irrelevant text
             head.delete(0, urlIdx + urlMatch.length());
             int endURLIdx = head.indexOf(urlEndMatch);
-            
-            // Remove the URL 
+
+            // Remove the URL
             head.delete(0, endURLIdx+urlEndMatch.length());
 
             // Remove extra tags, specific to the plugin
             removeExtraTags(head);
             int headEndIdx = head.indexOf("</a>");
             headlineText = head.substring(0, headEndIdx);
-            
+
             // Last check to ensure a false positive headline isn't created
             if(!headlineText.contains("<") && headlineText.length() > 0)
             {
@@ -213,10 +213,9 @@ public class nytimes extends NewsPlugin
     {
         return "https://www.nytimes.com";
     }
-    
+
     public boolean interrupted()
     {
         return this.interrupted;
     }
 }
-

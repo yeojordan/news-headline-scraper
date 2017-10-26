@@ -1,13 +1,13 @@
 # News Headline Scraper
 COMP3003 Assignment: Scraper for News Headlines
 
--
+---
 
 ### Summary
 
 The News Headline Scraper, will retrieve headlines from plugins (news sources) and display them in a GUI for the user. The user has the ability to force an update of all plugins, that are loaded upon start up. As well as being able to cancel all active downloads. The GUI will display the current time in accordance with your machine's time and alert you of issues that arise during the running of the program.
 
--
+---
 
 ### Running the Program
 
@@ -34,11 +34,12 @@ Removing the artifacts built
 ````
 gradle clean
 ````
--
+
+---
 
 #### Method 2: If gradle is not installed
 
-Included in the repository is a gradle wrapper. 
+Included in the repository is a gradle wrapper.
 
 The following will create the jar file for the program
 
@@ -58,10 +59,10 @@ Removing the artifacts built
 
 ````
 ./gradlew clean
-```` 
+````
 
--
+---
 
 ### Extensibility
 
-For future plugins to be added, besides the functionality needing to be correct, the name of the plugin/sub-project should match that of the corresponding java file. 
+For future plugins to be added, besides the functionality needing to be correct, the name of the plugin/sub-project should match that of the corresponding java file.
